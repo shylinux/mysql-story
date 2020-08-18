@@ -1,9 +1,9 @@
 package server
 
 import (
-	"github.com/shylinux/icebergs"
+	ice "github.com/shylinux/icebergs"
 	"github.com/shylinux/icebergs/core/code"
-	"github.com/shylinux/toolkits"
+	kit "github.com/shylinux/toolkits"
 
 	"runtime"
 )
@@ -13,9 +13,9 @@ const MYSQL = "mysql"
 var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 	Configs: map[string]*ice.Config{
 		MYSQL: {Name: MYSQL, Help: "mysql", Value: kit.Data(
-			"windows", "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.49.zip",
-			"darwin", "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.49.tar.gz",
-			"linux", "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.49.tar.gz",
+			"windows", "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.zip",
+			"darwin", "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.tar.gz",
+			"linux", "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.tar.gz",
 		)},
 	},
 	Commands: map[string]*ice.Command{
