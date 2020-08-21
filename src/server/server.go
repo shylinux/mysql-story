@@ -7,7 +7,6 @@ import (
 	"github.com/shylinux/icebergs/core/code"
 	kit "github.com/shylinux/toolkits"
 
-	"os"
 	"path"
 	"runtime"
 	"strings"
@@ -56,15 +55,8 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 			}},
 			"start": {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
 				// 分配
-				port, p := "", ""
-				for {
-					port = m.Cmdx(tcp.PORT, "select", port)
-					p = path.Join(m.Conf(cli.DAEMON, kit.META_PATH), port)
-					if _, e := os.Stat(p); e != nil && os.IsNotExist(e) {
-						break
-					}
-					port = kit.Format(kit.Int(port) + 1)
-				}
+				port := m.Cmdx(tcp.PORT, "select")
+				p := path.Join(m.Conf(cli.DAEMON, kit.META_PATH), port)
 
 				// 复制
 				name := path.Base(strings.TrimSuffix(strings.TrimSuffix(m.Conf(MYSQL, kit.Keys(kit.MDB_META, runtime.GOOS)), ".tar.gz"), "zip"))
