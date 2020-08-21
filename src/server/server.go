@@ -55,27 +55,25 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 				m.Cmdy(cli.SYSTEM, "make", "install")
 			}},
 			"start": {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
-				name := path.Base(strings.TrimSuffix(strings.TrimSuffix(m.Conf(MYSQL, kit.Keys(kit.MDB_META, runtime.GOOS)), ".tar.gz"), "zip"))
-				from := kit.Path(path.Join(m.Conf(code.INSTALL, kit.META_PATH), name, "install"))
-				os.MkdirAll(path.Join("var/daemon"), ice.MOD_DIR)
-
-				// 复制
+				// 分配
 				port, p := "", ""
 				for {
 					port = m.Cmdx(tcp.PORT, "select", port)
-					p = path.Join("var/daemon", port)
+					p = path.Join(m.Conf(cli.DAEMON, kit.META_PATH), port)
 					if _, e := os.Stat(p); e != nil && os.IsNotExist(e) {
 						break
 					}
 					port = kit.Format(kit.Int(port) + 1)
 				}
-				m.Option(cli.CMD_DIR, "")
+
+				// 复制
+				name := path.Base(strings.TrimSuffix(strings.TrimSuffix(m.Conf(MYSQL, kit.Keys(kit.MDB_META, runtime.GOOS)), ".tar.gz"), "zip"))
+				from := kit.Path(path.Join(m.Conf(code.INSTALL, kit.META_PATH), name, "install"))
 				m.Cmdy(cli.SYSTEM, "cp", "-r", from, p)
 
 				// 生成
 				m.Option(cli.CMD_DIR, p)
 				m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
-
 				if f, _, e := kit.Create(path.Join(p, "my.cnf")); m.Assert(e) {
 					f.WriteString(kit.Format(_my_cnf, port))
 				}
@@ -96,14 +94,16 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 			}
 
 			m.Cmd(cli.DAEMON).Table(func(index int, value map[string]string, head []string) {
-				if strings.HasPrefix(value[kit.MDB_NAME], "bin/mysqld") {
+				if strings.HasPrefix(value[kit.MDB_NAME], "bin/mysql") {
 					m.Push(kit.MDB_TIME, value[kit.MDB_TIME])
 					m.Push(kit.MDB_PID, value[kit.MDB_PID])
 					m.Push(kit.MDB_DIR, value[kit.MDB_DIR])
 					m.Push(kit.MDB_PORT, path.Base(value[kit.MDB_DIR]))
+					m.Push(kit.MDB_STATUS, value[kit.MDB_STATUS])
 					m.Push(kit.MDB_NAME, value[kit.MDB_NAME])
 				}
 			})
+			m.Sort("time", "time_r")
 		}},
 	},
 }
