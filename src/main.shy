@@ -7,3 +7,5 @@ refer `
 premenu
 
 source server/server.shy
+
+source client/client.shy
