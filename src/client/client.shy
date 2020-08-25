@@ -1,0 +1,61 @@
+chapter "client"
+
+field "创建表" web.code.mysql.client args.0 '' args.1 `
+create table if not exists tblStoredService(
+  id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name varchar(20),
+  portRange varchar(20),
+  extra text
+)
+` style max
+
+field "添加记录" web.code.mysql.client args.0 '' args.1 `
+insert into tblStoredService(name, portRange, extra)
+  value("stored-matrix", "[8000,9000]", "{}")
+`
+
+field "查询记录" web.code.mysql.client args.0 '' args.1 `
+select * from tblStoredService
+`
+field "删除表" web.code.mysql.client args.0 '' args.1 `
+drop table tblStoredService
+`
+
+return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+field "添加数据" web.code.mysql.client args.0 '' \
+  args.1 `create table if not exists tblStoredCluster(
+  id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+  status INT(1) COMMENT '集群状态',
+  regionId int,
+  serviceId int,
+  groupNum int,
+  primary key(id)
+)` style max
+
+
+field "添加数据" web.code.mysql.client args `'' 'insert into cluster(name) value("hi")'`
+field "查询数据" web.code.mysql.client args `'' 'select * from cluster'`
+
+return
+# set password for root@localhost = password('reoot');
