@@ -1,19 +1,19 @@
 chapter "client"
-field "数据库查询" web.code.mysql.select
+field "数据库查询" web.code.mysql.select args `6419ce dbStoredPaas`
 
 section "数据库"
-field "创建数据库" web.code.mysql.client args.0 '' args.1 `
+field "创建数据库" web.code.mysql.client args.0 '6419ce' args.1 `
 create database dbStoredPaas
 `
-field "查看数据库" web.code.mysql.client args.0 '' args.1 `
+field "查看数据库" web.code.mysql.client args.0 '6419ce' args.1 `
 show databases
 `
-field "删除数据库" web.code.mysql.client args.0 '' args.1 `
+field "删除数据库" web.code.mysql.client args.0 '6419ce' args.1 `
 drop database dbStoredPaas
 `
 
 section "关系表"
-field "创建表" web.code.mysql.client args.0 '' args.1 `
+field "创建表" web.code.mysql.client args.0 '6419ce' args.1 `
 create table if not exists dbStoredPass.tblStoredService(
   id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name varchar(20), extra text,
@@ -21,20 +21,20 @@ create table if not exists dbStoredPass.tblStoredService(
 )
 ` style max
 
-field "查看表" web.code.mysql.client args.0 '' args.1 `
+field "查看表" web.code.mysql.client args.0 '6419ce' args.1 `
 show tables
 `
-field "删除表" web.code.mysql.client args.0 '' args.1 `
+field "删除表" web.code.mysql.client args.0 '6419ce' args.1 `
 drop table dbStoredPass.tblStoredService
 `
 
 section "记录行"
-field "添加记录" web.code.mysql.client args.0 '' args.1 `
+field "添加记录" web.code.mysql.client args.0 '6419ce' args.1 `
 insert into dbStoredPaas.tblService(name, portRange, extra)
   value("stored-matrix", "[8000,9000]", "{}")
 `
 
-field "查询记录" web.code.mysql.client args.0 '' args.1 `
+field "查询记录" web.code.mysql.client args.0 '6419ce' args.1 `
 select * from dbStoredPaas.tblService
 `
 

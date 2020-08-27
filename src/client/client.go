@@ -12,18 +12,26 @@ import (
 	"strings"
 )
 
+const MYSQL = "mysql"
 const CLIENT = "client"
 const SELECT = "select"
+
+const (
+	USERNAME = "username"
+	PASSWORD = "password"
+	HOSTPORT = "hostport"
+	DATABASE = "database"
+)
 
 func _sql_meta(m *ice.Message, h string, db string) string {
 	m.Option(mdb.FIELDS, "time,hash,username,password,hostport,database")
 	msg := m.Cmd(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, h)
-	p := fmt.Sprintf("%s:%s@%s/%s?charset=utf8", msg.Append("username"), msg.Append("password"), msg.Append("hostport"), kit.Select(msg.Append("database"), db))
+	p := fmt.Sprintf("%s:%s@%s/%s?charset=utf8", msg.Append(USERNAME), msg.Append(PASSWORD), msg.Append(HOSTPORT), kit.Select(msg.Append(DATABASE), db))
 	return p
 }
 func _sql_exec(m *ice.Message, p string, s string, arg ...interface{}) *ice.Message {
 	m.Log_MODIFY("table", s, "p", p)
-	if db, e := sql.Open("mysql", p); m.Assert(e) {
+	if db, e := sql.Open(MYSQL, p); m.Assert(e) {
 		if res, err := db.Exec(s, arg...); err != nil {
 			m.Push("", kit.UnMarshal(kit.Format(err)))
 		} else {
@@ -39,7 +47,7 @@ func _sql_exec(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mess
 }
 func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Message {
 	m.Log_SELECT("table", s, "p", p)
-	if db, e := sql.Open("mysql", p); m.Assert(e) {
+	if db, e := sql.Open(MYSQL, p); m.Assert(e) {
 		defer db.Close()
 		if rows, err := db.Query(s, arg...); m.Assert(err) {
 			head, err := rows.Columns()
@@ -75,10 +83,10 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 	Commands: map[string]*ice.Command{
 		CLIENT: {Name: "client hash=@key 执行:button 连接 cmd:textarea", Help: "client", Meta: kit.Dict(
 			"连接", kit.List(
-				kit.MDB_INPUT, "text", "name", "username", "value", "root",
-				kit.MDB_INPUT, "text", "name", "password", "value", "root",
-				kit.MDB_INPUT, "text", "name", "hostport", "value", "tcp(localhost:10035)",
-				kit.MDB_INPUT, "text", "name", "database", "value", "paas",
+				kit.MDB_INPUT, "text", "name", USERNAME, "value", "root",
+				kit.MDB_INPUT, "text", "name", PASSWORD, "value", "root",
+				kit.MDB_INPUT, "text", "name", HOSTPORT, "value", "tcp(localhost:10035)",
+				kit.MDB_INPUT, "text", "name", DATABASE, "value", "dbStoredPaas",
 			),
 		), Action: map[string]*ice.Action{
 			"connect": {Name: "connect", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
@@ -90,12 +98,12 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
 			}},
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
-				p := _sql_meta(m, m.Option("hash"), "")
+				p := _sql_meta(m, m.Option(kit.MDB_HASH), "")
 				table := _sql_query(m.Spawn(), p, "explain "+m.Option("cmd")).Append("table")
 				_sql_exec(m, p, kit.Format("update %s set %s='%s' where id=%s", table, arg[0], arg[1], m.Option("id")))
 			}},
 			mdb.DELETE: {Name: "delete", Help: "删除", Hand: func(m *ice.Message, arg ...string) {
-				p := _sql_meta(m, m.Option("hash"), "")
+				p := _sql_meta(m, m.Option(kit.MDB_HASH), "")
 				table := _sql_query(m.Spawn(), p, "explain "+m.Option("cmd")).Append("table")
 				_sql_exec(m, p, kit.Format("delete from %s where id=%s", table, m.Option("id")))
 			}},
@@ -118,10 +126,10 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 
 		SELECT: {Name: "select hash=auto database=auto table=auto limit offset auto 连接", Help: "查询", Meta: kit.Dict(
 			"连接", kit.List(
-				kit.MDB_INPUT, "text", "name", "username", "value", "root",
-				kit.MDB_INPUT, "text", "name", "password", "value", "root",
-				kit.MDB_INPUT, "text", "name", "hostport", "value", "tcp(localhost:10035)",
-				kit.MDB_INPUT, "text", "name", "database", "value", "dbStoredPaas",
+				kit.MDB_INPUT, "text", "name", USERNAME, "value", "root",
+				kit.MDB_INPUT, "text", "name", PASSWORD, "value", "root",
+				kit.MDB_INPUT, "text", "name", HOSTPORT, "value", "tcp(localhost:10035)",
+				kit.MDB_INPUT, "text", "name", DATABASE, "value", "dbStoredPaas",
 			),
 		), Action: map[string]*ice.Action{
 			"connect": {Name: "connect", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
@@ -129,11 +137,11 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			}},
 
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
-				p := _sql_meta(m, m.Option("hash"), m.Option("database"))
+				p := _sql_meta(m, m.Option(kit.MDB_HASH), m.Option(DATABASE))
 				_sql_exec(m, p, kit.Format("update %s set %s='%s' where id=%s", m.Option("table"), arg[0], arg[1], m.Option("id")))
 			}},
 			mdb.DELETE: {Name: "delete", Help: "删除", Hand: func(m *ice.Message, arg ...string) {
-				p := _sql_meta(m, m.Option("hash"), m.Option("database"))
+				p := _sql_meta(m, m.Option(kit.MDB_HASH), m.Option(DATABASE))
 				_sql_exec(m, p, kit.Format("delete from %s where id=%s", m.Option("table"), m.Option("id")))
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
@@ -144,7 +152,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			}
 			if p := _sql_meta(m, arg[0], ""); len(arg) == 1 || arg[1] == "" {
 				_sql_query(m.Spawn(), p, "show databases").Table(func(index int, value map[string]string, head []string) {
-					m.Push("database", value[head[0]])
+					m.Push(DATABASE, value[head[0]])
 				})
 				return
 			}
