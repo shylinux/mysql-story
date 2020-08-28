@@ -1,6 +1,6 @@
 chapter "server"
 section "服务体验"
-field "数据库" web.code.mysql.mysql
+field "数据库" web.code.mysql.server
 field "源代码" web.code.inner args `[ usr/install/mysql-5.6.48/ sql/main.cc 30 ]`
 
 section "安装编译"
