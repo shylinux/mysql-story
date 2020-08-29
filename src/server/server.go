@@ -51,13 +51,22 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 				m.Cmdy(code.INSTALL, "build", m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)))
 			}},
 			"start": {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
+				pp := ""
 				m.Optionv("prepare", func(p string) []string {
-					m.Option(cli.CMD_DIR, p)
+					pp = m.Option(cli.CMD_DIR, p)
 					m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
 					return []string{"--port", path.Base(p)}
 				})
 				m.Cmdy(code.INSTALL, "start", m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)),
 					"bin/mysqld", m.Confv(SERVER, "meta.start"))
+
+				m.Sleep("1s")
+				m.Option(cli.CMD_DIR, pp)
+				m.Option(cli.CMD_TYPE, cli.SYSTEM)
+				m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket",
+					"-u", "root", "-e", "set password for root@localhost = password('root')")
+
+				m.Cmd("client", "connect", "username", "root", "password", "root", "hostport", "tcp(localhost:"+path.Base(pp)+")", "database", "mysql")
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			m.Cmdy(code.INSTALL, path.Base(m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS))), arg)

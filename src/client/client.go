@@ -12,9 +12,11 @@ import (
 	"strings"
 )
 
-const MYSQL = "mysql"
-const CLIENT = "client"
-const SELECT = "select"
+const (
+	MYSQL  = "mysql"
+	CLIENT = "client"
+	SELECT = "select"
+)
 
 const (
 	USERNAME = "username"
@@ -24,6 +26,9 @@ const (
 )
 
 func _sql_meta(m *ice.Message, h string, db string) string {
+	if h == "random" {
+		h = kit.MDB_RANDOMS
+	}
 	m.Option(mdb.FIELDS, "time,hash,username,password,hostport,database")
 	msg := m.Cmd(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, h)
 	p := fmt.Sprintf("%s:%s@%s/%s?charset=utf8", msg.Append(USERNAME), msg.Append(PASSWORD), msg.Append(HOSTPORT), kit.Select(msg.Append(DATABASE), db))

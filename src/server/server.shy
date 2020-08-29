@@ -1,14 +1,8 @@
 chapter "server"
-section "服务体验"
 field "数据库" web.code.mysql.server
 field "源代码" web.code.inner args `[ usr/install/mysql-5.6.48/ sql/main.cc 30 ]`
 
 section "安装编译"
-refer `
-安装 https://www.cnblogs.com/jabbok/p/9418344.html
-入门 https://blog.csdn.net/thankszmy/article/details/87364803
-`
-
 spark shell `
 wget https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.tar.gz
 tar xvf mysql-5.6.48.tar.gz && cd mysql-5.6.48
@@ -29,7 +23,6 @@ basedir = ./
 datadir = ./data
 port = 3306
 socket = ./mysqld.socket
-
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES 
 
 [mysqld_safe]
@@ -46,18 +39,17 @@ section "连接服务"
 spark shell `
 ./bin/mysql -S ./data/mysqld.socket -u root
 `
+section "设置密码"
+spark mysql `
+set password for root@localhost = password('root')\;
+`
+
 
 section "体验服务"
 spark mysql `
 create database paas\;
 use paas\;
-`
-
-spark mysql `
-create table cluster (id int PRIMARY KEY AUTO_INCREMENT, name varchat(20))\;
+create table cluster (id int PRIMARY KEY AUTO_INCREMENT, name varchar(20))\;
 insert into cluster(name) value("jxzt")\;
-`
-
-spark mysql `
 select * from cluster\;
 `
