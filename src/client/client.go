@@ -116,36 +116,41 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			if len(arg) == 0 || arg[0] == "" {
 				m.Option(mdb.FIELDS, "time,hash,username,hostport,database")
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
-				return
-			}
-
-			if p := _sql_meta(m, arg[0], ""); strings.Contains(arg[1], "SHOW") || strings.Contains(arg[1], "show") {
+			} else if p := _sql_meta(m, arg[0], ""); strings.Contains(arg[1], "SHOW") || strings.Contains(arg[1], "show") {
 				_sql_query(m, p, arg[1])
 			} else if strings.Contains(arg[1], "SELECT") || strings.Contains(arg[1], "select") {
 				_sql_query(m, p, arg[1])
-				m.PushAction("删除")
 			} else {
 				_sql_exec(m, p, arg[1])
 			}
+			m.PushAction("删除")
 		}},
 
-		SELECT: {Name: "select hash=auto database=auto table=auto limit offset auto 连接", Help: "查询", Meta: kit.Dict(
-			"连接", kit.List(
-				kit.MDB_INPUT, "text", "name", USERNAME, "value", "root",
-				kit.MDB_INPUT, "text", "name", PASSWORD, "value", "root",
-				kit.MDB_INPUT, "text", "name", HOSTPORT, "value", "tcp(localhost:10035)",
-				kit.MDB_INPUT, "text", "name", DATABASE, "value", "dbStoredPaas",
-			),
-		), Action: map[string]*ice.Action{
-			"connect": {Name: "connect", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
+		SELECT: {Name: "select hash=auto database=auto table=auto limit offset auto 连接", Help: "查询", Action: map[string]*ice.Action{
+			mdb.CREATE: {Name: "create", Help: "连接", List: kit.List(
+				kit.MDB_INPUT, "text", kit.MDB_NAME, USERNAME, kit.MDB_VALUE, "root",
+				kit.MDB_INPUT, "text", kit.MDB_NAME, PASSWORD, kit.MDB_VALUE, "root",
+				kit.MDB_INPUT, "text", kit.MDB_NAME, HOSTPORT, kit.MDB_VALUE, "tcp(localhost:10035)",
+				kit.MDB_INPUT, "text", kit.MDB_NAME, DATABASE, kit.MDB_VALUE, "mysql",
+			), Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
 
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
+				if m.Option(HOSTPORT) != "" {
+					m.Cmdy(mdb.MODIFY, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, m.Option(kit.MDB_HASH), arg)
+					return
+				}
+
 				p := _sql_meta(m, m.Option(kit.MDB_HASH), m.Option(DATABASE))
 				_sql_exec(m, p, kit.Format("update %s set %s='%s' where id=%s", m.Option("table"), arg[0], arg[1], m.Option("id")))
 			}},
 			mdb.DELETE: {Name: "delete", Help: "删除", Hand: func(m *ice.Message, arg ...string) {
+				if m.Option(HOSTPORT) != "" {
+					m.Cmdy(mdb.DELETE, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, m.Option(kit.MDB_HASH))
+					return
+				}
+
 				p := _sql_meta(m, m.Option(kit.MDB_HASH), m.Option(DATABASE))
 				_sql_exec(m, p, kit.Format("delete from %s where id=%s", m.Option("table"), m.Option("id")))
 			}},
@@ -153,23 +158,14 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			if len(arg) == 0 || arg[0] == "" {
 				m.Option(mdb.FIELDS, "time,hash,username,hostport,database")
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
-				return
-			}
-			if p := _sql_meta(m, arg[0], ""); len(arg) == 1 || arg[1] == "" {
-				_sql_query(m.Spawn(), p, "show databases").Table(func(index int, value map[string]string, head []string) {
-					m.Push(DATABASE, value[head[0]])
-				})
-				return
-			}
-
-			if p := _sql_meta(m, arg[0], arg[1]); len(arg) == 2 || arg[2] == "" {
-				_sql_query(m.Spawn(), p, "show tables").Table(func(index int, value map[string]string, head []string) {
-					m.Push("table", value[head[0]])
-				})
+			} else if p := _sql_meta(m, arg[0], ""); len(arg) == 1 || arg[1] == "" {
+				_sql_query(m.Spawn(), p, "show databases").Table(func(index int, value map[string]string, head []string) { m.Push(DATABASE, value[head[0]]) })
+			} else if p := _sql_meta(m, arg[0], arg[1]); len(arg) == 2 || arg[2] == "" {
+				_sql_query(m.Spawn(), p, "show tables").Table(func(index int, value map[string]string, head []string) { m.Push("table", value[head[0]]) })
 			} else {
-				_sql_query(m, p, fmt.Sprintf("select * from %s limit %s offset %s", arg[2], kit.Select("10", arg, 3), kit.Select("0", arg, 4)))
-				m.PushAction("删除")
+				_sql_query(m, p, fmt.Sprintf("select * from %s limit %s offset %s", arg[2], kit.Select("30", arg, 3), kit.Select("0", arg, 4)))
 			}
+			m.PushAction("删除")
 		}},
 	},
 }
