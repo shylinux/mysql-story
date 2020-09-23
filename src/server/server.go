@@ -23,7 +23,7 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 			"linux", "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.tar.gz",
 
 			"build", []string{
-				"-DCMAKE_INSTALL_PREFIX=./install",
+				"-DCMAKE_INSTALL_PREFIX=./_install",
 				"-DDEFAULT_COLLATION=utf8_general_ci",
 				"-DDEFAULT_CHARSET=utf8",
 				"-DEXTRA_CHARSETS=all",
@@ -66,7 +66,7 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 				m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket",
 					"-u", "root", "-e", "set password for root@localhost = password('root')")
 
-				m.Cmd("client", "connect", "username", "root", "password", "root", "hostport", "tcp(localhost:"+path.Base(pp)+")", "database", "mysql")
+				m.Cmd("client", "connect", "username", "root", "password", "root", "host", "localhost", "port", path.Base(pp), "database", "mysql")
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			m.Cmdy(code.INSTALL, path.Base(m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS))), arg)
