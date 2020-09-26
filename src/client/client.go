@@ -31,11 +31,11 @@ func _sql_meta(m *ice.Message, h string, db string) string {
 	}
 	m.Option(mdb.FIELDS, "time,hash,username,password,host,port,database")
 	msg := m.Cmd(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, h)
-	if msg.Append(kit.MDB_PORT) == "" {
+	if msg.Append(kit.SSH_PORT) == "" {
 		return ""
 	}
 	p := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", msg.Append(USERNAME), msg.Append(PASSWORD),
-		msg.Append(kit.MDB_HOST), msg.Append(kit.MDB_PORT), kit.Select(msg.Append(DATABASE), db))
+		msg.Append(kit.SSH_HOST), msg.Append(kit.SSH_PORT), kit.Select(msg.Append(DATABASE), db))
 	return p
 }
 func _sql_exec(m *ice.Message, p string, s string, arg ...interface{}) *ice.Message {
@@ -135,7 +135,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			}},
 
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
-				if m.Option(kit.MDB_PORT) != "" {
+				if m.Option(kit.SSH_PORT) != "" {
 					m.Cmdy(mdb.MODIFY, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, m.Option(kit.MDB_HASH), arg)
 					return
 				}
@@ -144,7 +144,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 				_sql_exec(m, p, kit.Format("update %s set %s='%s' where id=%s", m.Option("table"), arg[0], arg[1], m.Option("id")))
 			}},
 			mdb.REMOVE: {Name: "remove", Help: "删除", Hand: func(m *ice.Message, arg ...string) {
-				if m.Option(kit.MDB_PORT) != "" {
+				if m.Option(kit.SSH_PORT) != "" {
 					m.Cmdy(mdb.DELETE, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, m.Option(kit.MDB_HASH))
 					return
 				}
@@ -154,7 +154,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			}},
 			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
 				switch arg[0] {
-				case kit.MDB_PORT:
+				case kit.SSH_PORT:
 					m.Cmdy(server.SERVER)
 				default:
 					m.Option(mdb.FIELDS, "time,hash,username,host,port,database")
