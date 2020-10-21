@@ -92,12 +92,12 @@ func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mes
 	return m
 }
 
-var Index = &ice.Context{Name: CLIENT, Help: "client",
+var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 	Configs: map[string]*ice.Config{
-		CLIENT: {Name: CLIENT, Help: "client", Value: kit.Data()},
+		CLIENT: {Name: CLIENT, Help: "客户端", Value: kit.Data()},
 	},
 	Commands: map[string]*ice.Command{
-		CLIENT: {Name: "client hash=@key 执行:button 连接 cmd:textarea", Help: "client", Action: map[string]*ice.Action{
+		CLIENT: {Name: "client hash=@key 执行:button create cmd:textarea", Help: "客户端", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000 database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
@@ -126,10 +126,10 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			} else {
 				_sql_exec(m, p, arg[1])
 			}
-			m.PushAction("删除")
+			m.PushAction(mdb.REMOVE)
 		}},
 
-		SELECT: {Name: "select hash@key database table limit offset auto 连接", Help: "查询", Action: map[string]*ice.Action{
+		SELECT: {Name: "select hash@key database table limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
@@ -155,7 +155,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
 				switch arg[0] {
 				case kit.SSH_PORT:
-					m.Cmdy(server.SERVER)
+					m.Cmdy(m.Prefix(server.SERVER))
 				default:
 					m.Option(mdb.FIELDS, "time,hash,username,host,port,database")
 					m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
@@ -172,7 +172,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "client",
 			} else {
 				_sql_query(m, p, fmt.Sprintf("select * from %s limit %s offset %s", arg[2], kit.Select("30", arg, 3), kit.Select("0", arg, 4)))
 			}
-			m.PushAction("删除")
+			m.PushAction(mdb.REMOVE)
 		}},
 	},
 }

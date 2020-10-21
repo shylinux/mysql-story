@@ -3,6 +3,8 @@ package server
 import (
 	ice "github.com/shylinux/icebergs"
 	"github.com/shylinux/icebergs/base/cli"
+	"github.com/shylinux/icebergs/base/gdb"
+	"github.com/shylinux/icebergs/base/web"
 	"github.com/shylinux/icebergs/core/code"
 	kit "github.com/shylinux/toolkits"
 
@@ -11,9 +13,10 @@ import (
 )
 
 const (
-	MYSQL  = "mysql"
 	SERVER = "server"
 )
+
+const MYSQL = "mysql"
 
 var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 	Configs: map[string]*ice.Config{
@@ -39,25 +42,25 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 		ice.CTX_INIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) { m.Load() }},
 		ice.CTX_EXIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) { m.Save() }},
 
-		SERVER: {Name: "server port=auto path=auto auto 启动:button 构建:button 下载:button", Help: "服务器", Action: map[string]*ice.Action{
-			"download": {Name: "download", Help: "下载", Hand: func(m *ice.Message, arg ...string) {
-				m.Cmdy(code.INSTALL, "download", m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)))
+		SERVER: {Name: "server port=auto path=auto auto start build download", Help: "服务器", Action: map[string]*ice.Action{
+			web.DOWNLOAD: {Name: "download", Help: "下载", Hand: func(m *ice.Message, arg ...string) {
+				m.Cmdy(code.INSTALL, web.DOWNLOAD, m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)))
 			}},
-			"build": {Name: "build", Help: "构建", Hand: func(m *ice.Message, arg ...string) {
+			gdb.BUILD: {Name: "build", Help: "构建", Hand: func(m *ice.Message, arg ...string) {
 				m.Optionv("prepare", func(p string) {
 					m.Option(cli.CMD_DIR, p)
 					m.Cmdy(cli.SYSTEM, "cmake", "./", m.Confv(SERVER, "meta.build"))
 				})
-				m.Cmdy(code.INSTALL, "build", m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)))
+				m.Cmdy(code.INSTALL, gdb.BUILD, m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)))
 			}},
-			"start": {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
+			gdb.START: {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
 				pp := ""
 				m.Optionv("prepare", func(p string) []string {
 					pp = m.Option(cli.CMD_DIR, p)
 					m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
 					return []string{"--port", path.Base(p)}
 				})
-				m.Cmdy(code.INSTALL, "start", m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)),
+				m.Cmdy(code.INSTALL, gdb.START, m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS)),
 					"bin/mysqld", m.Confv(SERVER, "meta.start"))
 
 				m.Sleep("1s")
@@ -66,7 +69,7 @@ var Index = &ice.Context{Name: MYSQL, Help: "mysql",
 				m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket",
 					"-u", "root", "-e", "set password for root@localhost = password('root')")
 
-				m.Cmd("client", "connect", "username", "root", "password", "root", "host", "localhost", "port", path.Base(pp), "database", "mysql")
+				m.Cmd(m.Prefix("client"), "connect", "username", "root", "password", "root", "host", "localhost", "port", path.Base(pp), "database", "mysql")
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			m.Cmdy(code.INSTALL, path.Base(m.Conf(SERVER, kit.Keys(kit.MDB_META, runtime.GOOS))), arg)
