@@ -12,19 +12,6 @@ import (
 	"strings"
 )
 
-const (
-	MYSQL  = "mysql"
-	CLIENT = "client"
-	SELECT = "select"
-)
-
-const (
-	USERNAME = "username"
-	PASSWORD = "password"
-	HOSTPORT = "hostport"
-	DATABASE = "database"
-)
-
 func _sql_meta(m *ice.Message, h string, db string) string {
 	if h == "random" {
 		h = kit.MDB_RANDOMS
@@ -39,11 +26,14 @@ func _sql_meta(m *ice.Message, h string, db string) string {
 	return p
 }
 func _sql_exec(m *ice.Message, p string, s string, arg ...interface{}) *ice.Message {
-	m.Log_MODIFY("table", s, "p", p)
 	if p == "" {
 		return m
 	}
+
+	m.Log_MODIFY("table", s, "p", p)
 	if db, e := sql.Open(MYSQL, p); m.Assert(e) {
+		defer db.Close()
+
 		if res, err := db.Exec(s, arg...); err != nil {
 			m.Push("", kit.UnMarshal(kit.Format(err)))
 		} else {
@@ -58,13 +48,14 @@ func _sql_exec(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mess
 	return m
 }
 func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Message {
-	m.Log_SELECT("table", s, "p", p)
 	if p == "" {
 		return m
 	}
 
+	m.Log_SELECT("table", s, "p", p)
 	if db, e := sql.Open(MYSQL, p); m.Assert(e) {
 		defer db.Close()
+
 		if rows, err := db.Query(s, arg...); m.Assert(err) {
 			head, err := rows.Columns()
 			m.Assert(err)
@@ -92,12 +83,26 @@ func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mes
 	return m
 }
 
+const (
+	MYSQL  = "mysql"
+	SELECT = "select"
+)
+
+const (
+	USERNAME = "username"
+	PASSWORD = "password"
+	HOSTPORT = "hostport"
+	DATABASE = "database"
+)
+
+const CLIENT = "client"
+
 var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 	Configs: map[string]*ice.Config{
 		CLIENT: {Name: CLIENT, Help: "客户端", Value: kit.Data()},
 	},
 	Commands: map[string]*ice.Command{
-		CLIENT: {Name: "client hash=@key 执行:button create cmd:textarea", Help: "客户端", Action: map[string]*ice.Action{
+		CLIENT: {Name: "client hash 执行:button create cmd:textarea", Help: "客户端", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000 database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
@@ -119,17 +124,16 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			if len(arg) == 0 || arg[0] == "" {
 				m.Option(mdb.FIELDS, "time,hash,username,host,port,database")
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
-			} else if p := _sql_meta(m, arg[0], ""); strings.Contains(arg[1], "SHOW") || strings.Contains(arg[1], "show") {
+			} else if p := _sql_meta(m, arg[0], ""); strings.Contains(strings.ToLower(arg[1]), "show") {
 				_sql_query(m, p, arg[1])
-			} else if strings.Contains(arg[1], "SELECT") || strings.Contains(arg[1], "select") {
+			} else if strings.Contains(strings.ToLower(arg[1]), "select") {
 				_sql_query(m, p, arg[1])
 			} else {
 				_sql_exec(m, p, arg[1])
 			}
-			m.PushAction(mdb.REMOVE)
 		}},
 
-		SELECT: {Name: "select hash@key database table limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
+		SELECT: {Name: "select hash database table limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
@@ -172,9 +176,8 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			} else {
 				_sql_query(m, p, fmt.Sprintf("select * from %s limit %s offset %s", arg[2], kit.Select("30", arg, 3), kit.Select("0", arg, 4)))
 			}
-			m.PushAction(mdb.REMOVE)
 		}},
 	},
 }
 
-func init() { server.Index.Merge(Index, nil) }
+func init() { server.Index.Merge(Index) }
