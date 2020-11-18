@@ -4,8 +4,6 @@ refer `
 源码 https://github.com/mysql/mysql-server
 文档 https://dev.mysql.com/doc/refman/5.6/en/sql-data-definition-statements.html
 `
-premenu
 
 source server/server.shy
-
 source client/client.shy

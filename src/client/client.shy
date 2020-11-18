@@ -1,8 +1,6 @@
 chapter "client"
-field "数据库查询" web.code.mysql.select args `[ random  dbStoredPaas tblTask ]`
-field "数据库查询" web.code.mysql.select args `[ random  dbStoredPaas tblNode ]`
-field "数据库查询" web.code.mysql.select args `[ random  dbStoredPaas tblMachine ]`
-field "数据库查询" web.code.mysql.select args `[ random  dbStoredPaas ]`
+field "client" web.code.mysql.client
+field "query" web.code.mysql.query
 
 section "数据库"
 field "创建数据库" web.code.mysql.client args.0 'random' args.1 `
