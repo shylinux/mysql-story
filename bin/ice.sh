@@ -3,7 +3,6 @@
 export PATH=${PWD}/bin:${PWD}:$PATH
 export ctx_log=${ctx_log:=bin/boot.log}
 export ctx_pid=${ctx_pid:=var/run/ice.pid}
-export ctx_mod=${ctx_mod:=gdb,log,ssh,ctx}
 
 restart() {
     [ -e $ctx_pid ] && kill -2 `cat $ctx_pid` &>/dev/null || echo
