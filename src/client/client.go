@@ -1,17 +1,19 @@
 package client
 
 import (
+	"database/sql"
+	"fmt"
+	"strings"
+
 	_ "github.com/go-sql-driver/mysql"
+
 	ice "github.com/shylinux/icebergs"
+	"github.com/shylinux/icebergs/base/aaa"
 	"github.com/shylinux/icebergs/base/cli"
 	"github.com/shylinux/icebergs/base/mdb"
 	"github.com/shylinux/icebergs/base/tcp"
 	"github.com/shylinux/mysql-story/src/server"
 	kit "github.com/shylinux/toolkits"
-
-	"database/sql"
-	"fmt"
-	"strings"
 )
 
 func _sql_meta(m *ice.Message, h string, db string) string {
@@ -21,11 +23,9 @@ func _sql_meta(m *ice.Message, h string, db string) string {
 
 	m.Option(mdb.FIELDS, "time,hash,username,password,host,port,database")
 	msg := m.Cmd(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, h)
-	if msg.Append(tcp.PORT) == "" {
-		return ""
-	}
+	m.Assert(msg.Append(tcp.PORT) != "")
 
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", msg.Append(USERNAME), msg.Append(PASSWORD),
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD),
 		msg.Append(tcp.HOST), msg.Append(tcp.PORT), kit.Select(msg.Append(DATABASE), db))
 }
 func _sql_exec(m *ice.Message, p string, s string, arg ...interface{}) *ice.Message {
@@ -87,15 +87,9 @@ func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mes
 }
 
 const (
-	MYSQL = "mysql"
-	QUERY = "query"
-)
-
-const (
-	USERNAME = "username"
-	PASSWORD = "password"
-	HOSTPORT = "hostport"
+	MYSQL    = "mysql"
 	DATABASE = "database"
+	QUERY    = "query"
 )
 
 const CLIENT = "client"
@@ -127,9 +121,10 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			if len(arg) < 2 || arg[0] == "" {
 				m.Option(mdb.FIELDS, kit.Select("time,hash,username,host,port,database", mdb.DETAIL, len(arg) > 0 && arg[0] != ""))
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
-			} else if len(arg) == 1 {
+				return
+			}
 
-			} else if p := _sql_meta(m, arg[0], ""); strings.Contains(strings.ToLower(arg[1]), "show") {
+			if p := _sql_meta(m, arg[0], ""); strings.Contains(strings.ToLower(arg[1]), "show") {
 				_sql_query(m, p, arg[1])
 			} else if strings.Contains(strings.ToLower(arg[1]), "select") {
 				_sql_query(m, p, arg[1])
@@ -164,7 +159,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
 				switch arg[0] {
 				case tcp.PORT:
-					m.Cmdy(m.Prefix(server.SERVER))
+					m.Cmdy(server.SERVER)
 				default:
 					m.Option(mdb.FIELDS, "time,hash,username,host,port,database")
 					m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
@@ -174,13 +169,19 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			if len(arg) == 0 || arg[0] == "" {
 				m.Option(mdb.FIELDS, "time,hash,username,host,port,database")
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
-			} else if p := _sql_meta(m, arg[0], ""); len(arg) == 1 || arg[1] == "" {
+				return
+			}
+
+			if p := _sql_meta(m, arg[0], ""); len(arg) == 1 || arg[1] == "" {
 				_sql_query(m.Spawn(), p, "show databases").Table(func(index int, value map[string]string, head []string) { m.Push(DATABASE, value[head[0]]) })
+
 			} else if p := _sql_meta(m, arg[0], arg[1]); len(arg) == 2 || arg[2] == "" {
 				_sql_query(m.Spawn(), p, "show tables").Table(func(index int, value map[string]string, head []string) { m.Push(kit.MDB_TABLE, value[head[0]]) })
+
 			} else if len(arg) > 3 && arg[3] != "" {
 				m.Option(mdb.FIELDS, mdb.DETAIL)
 				_sql_query(m, p, fmt.Sprintf("select * from %s where id = %s", arg[2], arg[3]))
+
 			} else {
 				_sql_query(m, p, fmt.Sprintf("select * from %s limit %s offset %s", arg[2], kit.Select("30", arg, 4), kit.Select("0", arg, 5)))
 			}

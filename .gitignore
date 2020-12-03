@@ -1,3 +1,4 @@
 *.swp
-bin/
-var/
+bin/*
+var/*
+usr/*

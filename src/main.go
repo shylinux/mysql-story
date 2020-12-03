@@ -10,4 +10,4 @@ import (
 	_ "github.com/shylinux/mysql-story/src/server"
 )
 
-func main() { println(ice.Run()) }
+func main() { print(ice.Run()) }
