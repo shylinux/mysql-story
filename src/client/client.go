@@ -59,6 +59,7 @@ func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mes
 	if db, e := sql.Open(MYSQL, p); m.Assert(e) {
 		defer db.Close()
 
+		m.Debug("what %v %v", s, arg)
 		if rows, err := db.Query(s, arg...); m.Assert(err) {
 			head, err := rows.Columns()
 			m.Assert(err)
@@ -89,6 +90,7 @@ func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mes
 const (
 	MYSQL    = "mysql"
 	DATABASE = "database"
+	STATMENT = "statment"
 	QUERY    = "query"
 )
 
@@ -102,6 +104,10 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 		CLIENT: {Name: "client hash 执行:button create cmd:textarea", Help: "客户端", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000 database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
+			}},
+			mdb.SELECT: {Name: "select hash database statment:textarea", Help: "查询", Hand: func(m *ice.Message, arg ...string) {
+				p := _sql_meta(m, m.Option(kit.MDB_HASH), m.Option(DATABASE))
+				_sql_query(m, p, m.Option(STATMENT))
 			}},
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
 				p := _sql_meta(m, m.Option(kit.MDB_HASH), "")
@@ -133,11 +139,10 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			}
 		}},
 
-		QUERY: {Name: "query hash database table id limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
+		QUERY: {Name: "query hash database table id limit offset auto create select", Help: "查询", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
-
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
 				if m.Option(tcp.PORT) != "" {
 					m.Cmdy(mdb.MODIFY, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, m.Option(kit.MDB_HASH), arg)
