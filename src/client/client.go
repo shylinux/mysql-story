@@ -78,7 +78,7 @@ func _sql_query(m *ice.Message, p string, s string, arg ...interface{}) *ice.Mes
 					case []byte:
 						m.Push(head[i], string(v))
 					default:
-						m.Push(head[i], v)
+						m.Push(head[i], fmt.Sprintf("%v", v))
 					}
 				}
 			}
@@ -139,7 +139,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			}
 		}},
 
-		QUERY: {Name: "query hash database table id limit offset auto create select", Help: "查询", Action: map[string]*ice.Action{
+		QUERY: {Name: "query hash database table id limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
@@ -174,6 +174,7 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 			if len(arg) == 0 || arg[0] == "" {
 				m.Option(mdb.FIELDS, "time,hash,username,host,port,database")
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
+				m.PushAction(mdb.REMOVE)
 				return
 			}
 
