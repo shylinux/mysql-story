@@ -69,7 +69,7 @@ var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 				m.Sleep("1s")
 				m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket", "-u", "root", "-e", "set password for root@localhost = password('root')")
 
-				m.Event(MYSQL_SERVER_START, "username", "root", "password", "root", "host", "localhost", "port", path.Base(pp), "database", "mysql")
+				m.Event(MYSQL_SERVER_START, "username", "root", "password", "root", "host", "localhost", "port", path.Base(m.Option(cli.CMD_DIR)), "database", "mysql")
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			m.Cmdy(code.INSTALL, m.Conf(SERVER, kit.Keym(runtime.GOOS)), arg)
