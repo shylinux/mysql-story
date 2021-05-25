@@ -1,15 +1,15 @@
 chapter "client"
-field "client" web.code.mysql.client
-field "query" web.code.mysql.query
+field "查询" web.code.mysql.query
+field "连接" web.code.mysql.client
 
 section "数据库"
-field "创建数据库" web.code.mysql.client args.0 'random' args.1 `
+field "创建库" web.code.mysql.client args.0 'random' args.1 `
 create database dbStoredPaas
 `
-field "查看数据库" web.code.mysql.client args.0 'random' args.1 `
+field "查看库" web.code.mysql.client args.0 'random' args.1 `
 show databases
 `
-field "删除数据库" web.code.mysql.client args.0 'random' args.1 `
+field "删除库" web.code.mysql.client args.0 'random' args.1 `
 drop database dbStoredPaas
 `
 

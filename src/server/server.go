@@ -5,29 +5,29 @@ import (
 	"runtime"
 
 	ice "github.com/shylinux/icebergs"
+	"github.com/shylinux/icebergs/base/aaa"
 	"github.com/shylinux/icebergs/base/cli"
 	"github.com/shylinux/icebergs/base/gdb"
+	"github.com/shylinux/icebergs/base/tcp"
 	"github.com/shylinux/icebergs/base/web"
 	"github.com/shylinux/icebergs/core/code"
 	kit "github.com/shylinux/toolkits"
 )
 
 const (
+	MYSQL = "mysql"
+)
+const (
 	MYSQL_SERVER_START = "mysql.server.start"
 )
-
-const (
-	SERVER = "server"
-)
-
-const MYSQL = "mysql"
+const SERVER = "server"
 
 var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 	Configs: map[string]*ice.Config{
 		SERVER: {Name: SERVER, Help: "服务器", Value: kit.Data(
-			cli.WINDOWS, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.zip",
-			cli.DARWIN, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.tar.gz",
-			cli.LINUX, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.48.tar.gz",
+			cli.WINDOWS, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.zip",
+			cli.DARWIN, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.tar.gz",
+			cli.LINUX, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.tar.gz",
 
 			gdb.BUILD, []string{
 				"-DCMAKE_INSTALL_PREFIX=./_install",
@@ -40,11 +40,16 @@ var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 				"--log-error=./mysqld.log", "--pid-file=./mysqld.pid",
 				"--socket=./mysqld.socket",
 			},
+			aaa.USERNAME, "root", aaa.PASSWORD, "root",
 		)},
 	},
 	Commands: map[string]*ice.Command{
-		ice.CTX_INIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) { m.Load() }},
-		ice.CTX_EXIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) { m.Save() }},
+		ice.CTX_INIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
+			m.Load()
+		}},
+		ice.CTX_EXIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
+			m.Save()
+		}},
 
 		SERVER: {Name: "server port path auto start build download", Help: "服务器", Action: map[string]*ice.Action{
 			web.DOWNLOAD: {Name: "download", Help: "下载", Hand: func(m *ice.Message, arg ...string) {
@@ -63,13 +68,19 @@ var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 					m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
 					return []string{"--port", path.Base(p)}
 				})
-				m.Cmdy(code.INSTALL, gdb.START, m.Conf(SERVER, kit.Keym(runtime.GOOS)),
-					"bin/mysqld", m.Confv(SERVER, kit.Keym(gdb.START)))
+				m.Echo(m.Cmdx(code.INSTALL, gdb.START, m.Conf(SERVER, kit.Keym(runtime.GOOS)),
+					"bin/mysqld", m.Confv(SERVER, kit.Keym(gdb.START))))
 
+				// 设置密码
 				m.Sleep("1s")
-				m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket", "-u", "root", "-e", "set password for root@localhost = password('root')")
+				username := m.Conf(SERVER, kit.Keym(aaa.USERNAME))
+				password := m.Conf(SERVER, kit.Keym(aaa.PASSWORD))
+				m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket", "-u", username,
+					"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
 
-				m.Event(MYSQL_SERVER_START, "username", "root", "password", "root", "host", "localhost", "port", path.Base(m.Option(cli.CMD_DIR)), "database", "mysql")
+				// 触发事件
+				m.Event(MYSQL_SERVER_START, aaa.USERNAME, username, aaa.PASSWORD, password,
+					tcp.HOST, tcp.LOCALHOST, tcp.PORT, path.Base(m.Option(cli.CMD_DIR)))
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			m.Cmdy(code.INSTALL, m.Conf(SERVER, kit.Keym(runtime.GOOS)), arg)
