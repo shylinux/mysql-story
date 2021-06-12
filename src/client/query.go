@@ -14,7 +14,7 @@ func init() {
 	server.Index.Merge(&ice.Context{Commands: map[string]*ice.Command{
 		QUERY: {Name: "query hash database table id limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
-				m.Cmdy(CLIENT, mdb.INSERT, arg)
+				m.Cmdy(CLIENT, mdb.CREATE, arg)
 			}},
 			mdb.REMOVE: {Name: "remove", Help: "删除", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(CLIENT, mdb.REMOVE, arg)
@@ -47,6 +47,7 @@ func init() {
 			} else { // 数据列表
 				_sql_query(m, dsn, kit.Format("select * from %s limit %s offset %s", arg[2], kit.Select("30", arg, 4), kit.Select("0", arg, 5)))
 			}
+			m.Status(kit.MDB_TIME, m.Time(), kit.MDB_COUNT, m.FormatSize())
 		}},
 	}})
 }
