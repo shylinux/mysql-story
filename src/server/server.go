@@ -7,7 +7,6 @@ import (
 	ice "github.com/shylinux/icebergs"
 	"github.com/shylinux/icebergs/base/aaa"
 	"github.com/shylinux/icebergs/base/cli"
-	"github.com/shylinux/icebergs/base/gdb"
 	"github.com/shylinux/icebergs/base/tcp"
 	"github.com/shylinux/icebergs/base/web"
 	"github.com/shylinux/icebergs/core/code"
@@ -29,13 +28,13 @@ var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 			cli.DARWIN, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.tar.gz",
 			cli.LINUX, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.tar.gz",
 
-			gdb.BUILD, []string{
+			cli.BUILD, []string{
 				"-DCMAKE_INSTALL_PREFIX=./_install",
 				"-DDEFAULT_COLLATION=utf8_general_ci",
 				"-DDEFAULT_CHARSET=utf8",
 				"-DEXTRA_CHARSETS=all",
 			},
-			gdb.START, []string{
+			cli.START, []string{
 				"--basedir=./", "--datadir=./data", "--plugin-dir=./lib/plugin",
 				"--log-error=./mysqld.log", "--pid-file=./mysqld.pid",
 				"--socket=./mysqld.socket",
@@ -55,21 +54,21 @@ var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 			web.DOWNLOAD: {Name: "download", Help: "下载", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(code.INSTALL, web.DOWNLOAD, m.Conf(SERVER, kit.Keym(runtime.GOOS)))
 			}},
-			gdb.BUILD: {Name: "build", Help: "构建", Hand: func(m *ice.Message, arg ...string) {
+			cli.BUILD: {Name: "build", Help: "构建", Hand: func(m *ice.Message, arg ...string) {
 				m.Optionv(code.PREPARE, func(p string) {
 					m.Option(cli.CMD_DIR, p)
-					m.Cmdy(cli.SYSTEM, "cmake", "./", m.Confv(SERVER, kit.Keym(gdb.BUILD)))
+					m.Cmdy(cli.SYSTEM, "cmake", "./", m.Confv(SERVER, kit.Keym(cli.BUILD)))
 				})
-				m.Cmdy(code.INSTALL, gdb.BUILD, m.Conf(SERVER, kit.Keym(runtime.GOOS)))
+				m.Cmdy(code.INSTALL, cli.BUILD, m.Conf(SERVER, kit.Keym(runtime.GOOS)))
 			}},
-			gdb.START: {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
+			cli.START: {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
 				m.Optionv(code.PREPARE, func(p string) []string {
 					m.Option(cli.CMD_DIR, p)
 					m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
 					return []string{"--port", path.Base(p)}
 				})
-				m.Echo(m.Cmdx(code.INSTALL, gdb.START, m.Conf(SERVER, kit.Keym(runtime.GOOS)),
-					"bin/mysqld", m.Confv(SERVER, kit.Keym(gdb.START))))
+				m.Echo(m.Cmdx(code.INSTALL, cli.START, m.Conf(SERVER, kit.Keym(runtime.GOOS)),
+					"bin/mysqld", m.Confv(SERVER, kit.Keym(cli.START))))
 
 				// 设置密码
 				m.Sleep("1s")
