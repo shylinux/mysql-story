@@ -1,6 +1,8 @@
 package client
 
 import (
+	"strings"
+
 	_ "github.com/go-sql-driver/mysql"
 	ice "github.com/shylinux/icebergs"
 	"github.com/shylinux/icebergs/base/mdb"
@@ -39,6 +41,10 @@ func init() {
 
 			} else if dsn := _sql_meta(m, arg[0], arg[1]); len(arg) == 2 || arg[2] == "" { // 关系表列表
 				_sql_query(m.Spawn(), dsn, "show tables").Table(func(index int, value map[string]string, head []string) { m.Push(kit.MDB_TABLE, value[head[0]]) })
+				m.Table(func(index int, value map[string]string, head []string) {
+					msg := _sql_query(m.Spawn(), dsn, kit.Format("show fields from %s", value["table"]))
+					m.Push("field", strings.Join(msg.Appendv("Field"), ","))
+				})
 
 			} else if len(arg) > 3 && arg[3] != "" { // 数据详情
 				m.Option(mdb.FIELDS, mdb.DETAIL)
