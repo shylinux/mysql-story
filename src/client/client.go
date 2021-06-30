@@ -14,8 +14,8 @@ import (
 )
 
 func _sql_meta(m *ice.Message, h string, db string) string {
-	m.Option(mdb.FIELDS, "time,hash,username,password,host,port,database")
-	msg := m.Cmd(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, h)
+	m.Option(mdb.FIELDS, "time,name,username,password,host,port,database")
+	msg := m.Cmd(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_NAME, h)
 	m.Assert(msg.Append(tcp.PORT) != "")
 
 	return kit.Format("%s:%s@tcp(%s:%s)/%s?charset=utf8", msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD),
@@ -81,7 +81,7 @@ const CLIENT = "client"
 
 var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 	Configs: map[string]*ice.Config{
-		CLIENT: {Name: CLIENT, Help: "客户端", Value: kit.Data()},
+		CLIENT: {Name: CLIENT, Help: "客户端", Value: kit.Data(kit.MDB_SHORT, kit.MDB_NAME)},
 	},
 	Commands: map[string]*ice.Command{
 		ice.CTX_INIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
@@ -90,32 +90,32 @@ var Index = &ice.Context{Name: CLIENT, Help: "客户端",
 		ice.CTX_EXIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 		}},
 
-		CLIENT: {Name: "client hash 执行:button create cmd:textarea", Help: "客户端", Action: map[string]*ice.Action{
+		CLIENT: {Name: "client name 执行:button create cmd:textarea", Help: "客户端", Action: map[string]*ice.Action{
 			server.MYSQL_SERVER_START: {Name: "mysql.server.start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg, DATABASE, MYSQL)
 			}},
-			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000 database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
+			mdb.CREATE: {Name: "create name=biz username=root password=root host=localhost port=10000 database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(mdb.INSERT, m.Prefix(CLIENT), "", mdb.HASH, arg)
 			}},
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
-				m.Cmdy(mdb.MODIFY, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, m.Option(kit.MDB_HASH), arg)
+				m.Cmdy(mdb.MODIFY, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_NAME, m.Option(kit.MDB_NAME), arg)
 			}},
 			mdb.REMOVE: {Name: "remove", Help: "删除", Hand: func(m *ice.Message, arg ...string) {
-				m.Cmdy(mdb.DELETE, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, m.Option(kit.MDB_HASH))
+				m.Cmdy(mdb.DELETE, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_NAME, m.Option(kit.MDB_NAME))
 			}},
 			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
 				switch arg[0] {
 				case tcp.PORT:
 					m.Cmdy(server.SERVER).Appendv(ice.MSG_APPEND, kit.Split("port,time"))
 				default:
-					m.Option(mdb.FIELDS, "time,hash,username,host,port,database")
+					m.Option(mdb.FIELDS, "time,name,username,host,port,database")
 					m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
 				}
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			if len(arg) < 2 || arg[0] == "" { // 连接列表
-				m.Fields(!(len(arg) > 0 && arg[0] != ""), "time,hash,username,host,port,database")
-				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_HASH, arg)
+				m.Fields(!(len(arg) > 0 && arg[0] != ""), "time,name,username,host,port,database")
+				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH, kit.MDB_NAME, arg)
 				m.PushAction(mdb.REMOVE)
 				return
 			}

@@ -14,15 +14,15 @@ const QUERY = "query"
 
 func init() {
 	server.Index.Merge(&ice.Context{Commands: map[string]*ice.Command{
-		QUERY: {Name: "query hash database table id limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
-			mdb.CREATE: {Name: "create username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
+		QUERY: {Name: "query name database table id limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
+			mdb.CREATE: {Name: "create name=biz username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(CLIENT, mdb.CREATE, arg)
 			}},
 			mdb.REMOVE: {Name: "remove", Help: "删除", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(CLIENT, mdb.REMOVE, arg)
 			}},
 			mdb.MODIFY: {Name: "modify", Help: "编辑", Hand: func(m *ice.Message, arg ...string) {
-				p := _sql_meta(m, m.Option(kit.MDB_HASH), m.Option(DATABASE))
+				p := _sql_meta(m, m.Option(kit.MDB_NAME), m.Option(DATABASE))
 				_sql_exec(m, p, kit.Format("update %s set %s='%s' where id=%s", m.Option(kit.MDB_TABLE), arg[0], arg[1], m.Option(kit.MDB_ID)))
 			}},
 			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
@@ -30,7 +30,7 @@ func init() {
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			if len(arg) == 0 || arg[0] == "" { // 连接列表
-				m.Fields(true, "time,hash,username,host,port,database")
+				m.Fields(true, "time,name,username,host,port,database")
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
 				m.PushAction(mdb.REMOVE)
 				return
