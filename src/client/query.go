@@ -10,11 +10,19 @@ import (
 	kit "github.com/shylinux/toolkits"
 )
 
+func _query_total(m *ice.Message, arg ...string) string {
+	if len(arg) > 2 {
+		msg := _sql_query(m.Spawn(), _sql_meta(m, arg[0], ""), kit.Format("select count(*) as total from %s", kit.Keys(arg[1], arg[2])))
+		return msg.Append("total")
+	}
+	return ""
+}
+
 const QUERY = "query"
 
 func init() {
 	server.Index.Merge(&ice.Context{Commands: map[string]*ice.Command{
-		QUERY: {Name: "query name database table id limit offset auto create", Help: "查询", Action: map[string]*ice.Action{
+		QUERY: {Name: "query name database table id auto page create", Help: "查询", Action: map[string]*ice.Action{
 			mdb.CREATE: {Name: "create name=biz username=root password=root host=localhost port=10000@key database=mysql", Help: "连接", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(CLIENT, mdb.CREATE, arg)
 			}},
@@ -27,6 +35,12 @@ func init() {
 			}},
 			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(CLIENT, mdb.INPUTS, arg)
+			}},
+			"prev": {Name: "prev", Help: "上一页", Hand: func(m *ice.Message, arg ...string) {
+				mdb.PrevPage(m, _query_total(m, arg...), kit.Slice(arg, 4)...)
+			}},
+			"next": {Name: "next", Help: "下一页", Hand: func(m *ice.Message, arg ...string) {
+				mdb.NextPage(m, _query_total(m, arg...), kit.Slice(arg, 4)...)
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			if len(arg) == 0 || arg[0] == "" { // 连接列表
@@ -53,7 +67,7 @@ func init() {
 			} else { // 数据列表
 				_sql_query(m, dsn, kit.Format("select * from %s limit %s offset %s", arg[2], kit.Select("30", arg, 4), kit.Select("0", arg, 5)))
 			}
-			m.Status(kit.MDB_TIME, m.Time(), kit.MDB_COUNT, m.FormatSize())
+			m.StatusTimeCountTotal(_query_total(m, arg...))
 		}},
 	}})
 }
