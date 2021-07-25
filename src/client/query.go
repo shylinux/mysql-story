@@ -44,7 +44,7 @@ func init() {
 			}},
 		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
 			if len(arg) == 0 || arg[0] == "" { // 连接列表
-				m.Fields(true, "time,name,username,host,port,database")
+				m.Fields(0, "time,name,username,host,port,database")
 				m.Cmdy(mdb.SELECT, m.Prefix(CLIENT), "", mdb.HASH)
 				m.PushAction(mdb.REMOVE)
 				return
