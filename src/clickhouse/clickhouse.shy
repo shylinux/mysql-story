@@ -1,0 +1,21 @@
+chapter "clickhouse"
+refer `
+官网 https://clickhouse.tech/
+文档 https://clickhouse.tech/docs/en/
+源码 https://github.com/ClickHouse/ClickHouse
+`
+
+section
+
+spark shell `
+wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-common-static-20.9.3.45-2.x86_64.rpm
+wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-server-20.9.3.45-2.noarch.rpm
+wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-client-20.9.3.45-2.noarch.rpm
+`
+
+spark shell `
+rpm -ivh clickhouse-common-static-20.9.3.45-2.x86_64.rpm
+rpm -ivh clickhouse-server-20.9.3.45-2.noarch.rpm
+rpm -ivh clickhouse-client-20.9.3.45-2.noarch.rpm
+`
+
