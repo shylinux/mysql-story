@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ -f ~/.ish/plug.sh ] || [ -f $PWD/.ish/plug.sh ] || git clone https://github.com/shylinux/intshell $PWD/.ish
+[ -f ~/.ish/plug.sh ] || [ -f $PWD/.ish/plug.sh ] || git clone https://shylinux.com/x/intshell $PWD/.ish
 [ "$ISH_CONF_PRE" != "" ] || source $PWD/.ish/plug.sh || source ~/.ish/plug.sh
 require miss.sh
 

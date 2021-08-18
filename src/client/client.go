@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
-	ice "github.com/shylinux/icebergs"
-	"github.com/shylinux/icebergs/base/aaa"
-	"github.com/shylinux/icebergs/base/mdb"
-	"github.com/shylinux/icebergs/base/tcp"
-	"github.com/shylinux/mysql-story/src/server"
-	kit "github.com/shylinux/toolkits"
+	ice "shylinux.com/x/icebergs"
+	"shylinux.com/x/icebergs/base/aaa"
+	"shylinux.com/x/icebergs/base/mdb"
+	"shylinux.com/x/icebergs/base/tcp"
+	"shylinux.com/x/mysql-story/src/server"
+	kit "shylinux.com/x/toolkits"
 )
 
 func _sql_meta(m *ice.Message, h string, db string) string {

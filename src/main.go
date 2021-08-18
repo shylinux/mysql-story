@@ -1,13 +1,13 @@
 package main
 
 import (
-	ice "github.com/shylinux/icebergs"
-	_ "github.com/shylinux/icebergs/base"
-	_ "github.com/shylinux/icebergs/core"
-	_ "github.com/shylinux/icebergs/misc"
+	ice "shylinux.com/x/icebergs"
+	_ "shylinux.com/x/icebergs/base"
+	_ "shylinux.com/x/icebergs/core"
+	_ "shylinux.com/x/icebergs/misc"
 
-	_ "github.com/shylinux/mysql-story/src/client"
-	_ "github.com/shylinux/mysql-story/src/server"
+	_ "shylinux.com/x/mysql-story/src/client"
+	_ "shylinux.com/x/mysql-story/src/server"
 )
 
 func main() { print(ice.Run()) }

@@ -4,10 +4,10 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
-	ice "github.com/shylinux/icebergs"
-	"github.com/shylinux/icebergs/base/mdb"
-	"github.com/shylinux/mysql-story/src/server"
-	kit "github.com/shylinux/toolkits"
+	ice "shylinux.com/x/icebergs"
+	"shylinux.com/x/icebergs/base/mdb"
+	"shylinux.com/x/mysql-story/src/server"
+	kit "shylinux.com/x/toolkits"
 )
 
 func _query_total(m *ice.Message, arg ...string) string {
