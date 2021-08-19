@@ -1,6 +1,7 @@
 package server
 
 import (
+	"os"
 	"path"
 	"runtime"
 
@@ -61,7 +62,15 @@ var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 				})
 				m.Cmdy(code.INSTALL, cli.BUILD, m.Conf(SERVER, kit.Keym(runtime.GOOS)))
 			}},
-			cli.START: {Name: "start", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
+			cli.START: {Name: "start port", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
+				if m.Option(tcp.PORT) != "" {
+					p := kit.Path(m.Conf(cli.DAEMON, kit.META_PATH), m.Option(tcp.PORT))
+					if _, e := os.Stat(p); e == nil {
+						m.Option(cli.CMD_DIR, p)
+						m.Cmdy(cli.DAEMON, "bin/mysqld", m.Confv(SERVER, kit.Keym(cli.START)), "--port", m.Option(tcp.PORT))
+					}
+					return
+				}
 				m.Optionv(code.PREPARE, func(p string) []string {
 					m.Option(cli.CMD_DIR, p)
 					m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
