@@ -8,6 +8,8 @@ import (
 	ice "shylinux.com/x/icebergs"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/cli"
+	"shylinux.com/x/icebergs/base/mdb"
+	"shylinux.com/x/icebergs/base/nfs"
 	"shylinux.com/x/icebergs/base/tcp"
 	"shylinux.com/x/icebergs/base/web"
 	"shylinux.com/x/icebergs/core/code"
@@ -61,6 +63,10 @@ var Index = &ice.Context{Name: MYSQL, Help: "数据库",
 					m.Cmdy(cli.SYSTEM, "cmake", "./", m.Confv(SERVER, kit.Keym(cli.BUILD)))
 				})
 				m.Cmdy(code.INSTALL, cli.BUILD, m.Conf(SERVER, kit.Keym(runtime.GOOS)))
+			}},
+			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
+				m.Cmdy(nfs.DIR, m.Conf(cli.DAEMON, kit.META_PATH), "name", "size", "time")
+				m.RenameAppend("name", "port")
 			}},
 			cli.START: {Name: "start port", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
 				if m.Option(tcp.PORT) != "" {
