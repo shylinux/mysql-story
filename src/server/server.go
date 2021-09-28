@@ -3,103 +3,84 @@ package server
 import (
 	"os"
 	"path"
-	"runtime"
 
-	ice "shylinux.com/x/icebergs"
+	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/cli"
-	"shylinux.com/x/icebergs/base/mdb"
-	"shylinux.com/x/icebergs/base/nfs"
 	"shylinux.com/x/icebergs/base/tcp"
 	"shylinux.com/x/icebergs/base/web"
 	"shylinux.com/x/icebergs/core/code"
 	kit "shylinux.com/x/toolkits"
 )
 
-const (
-	MYSQL = "mysql"
-)
-const (
-	MYSQL_SERVER_START = "mysql.server.start"
-)
-const SERVER = "server"
+type server struct {
+	source   string `data:"http://mirrors.tencent.com/slackware/slackware64-14.0/patches/source/mysql/mysql-5.5.52.tar.xz"`
+	username string `data:"root"`
+	password string `data:"root"`
 
-var Index = &ice.Context{Name: MYSQL, Help: "数据库",
-	Configs: map[string]*ice.Config{
-		SERVER: {Name: SERVER, Help: "服务器", Value: kit.Data(
-			cli.WINDOWS, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.zip",
-			cli.DARWIN, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.tar.gz",
-			cli.LINUX, "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.51.tar.gz",
-
-			cli.BUILD, []string{
-				"-DCMAKE_INSTALL_PREFIX=./_install",
-				"-DDEFAULT_COLLATION=utf8_general_ci",
-				"-DDEFAULT_CHARSET=utf8",
-				"-DEXTRA_CHARSETS=all",
-			},
-			cli.START, []string{
-				"--basedir=./", "--datadir=./data", "--plugin-dir=./lib/plugin",
-				"--log-error=./mysqld.log", "--pid-file=./mysqld.pid",
-				"--socket=./mysqld.socket",
-			},
-			aaa.USERNAME, "root", aaa.PASSWORD, "root",
-		)},
-	},
-	Commands: map[string]*ice.Command{
-		ice.CTX_INIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
-			m.Load()
-		}},
-		ice.CTX_EXIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
-			m.Save()
-		}},
-
-		SERVER: {Name: "server port path auto start build download", Help: "服务器", Action: map[string]*ice.Action{
-			web.DOWNLOAD: {Name: "download", Help: "下载", Hand: func(m *ice.Message, arg ...string) {
-				m.Cmdy(code.INSTALL, web.DOWNLOAD, m.Conf(SERVER, kit.Keym(runtime.GOOS)))
-			}},
-			cli.BUILD: {Name: "build", Help: "构建", Hand: func(m *ice.Message, arg ...string) {
-				m.Optionv(code.PREPARE, func(p string) {
-					m.Option(cli.CMD_DIR, p)
-					m.Cmdy(cli.SYSTEM, "cmake", "./", m.Confv(SERVER, kit.Keym(cli.BUILD)))
-				})
-				m.Cmdy(code.INSTALL, cli.BUILD, m.Conf(SERVER, kit.Keym(runtime.GOOS)))
-			}},
-			mdb.INPUTS: {Name: "inputs", Help: "补全", Hand: func(m *ice.Message, arg ...string) {
-				m.Cmdy(nfs.DIR, m.Conf(cli.DAEMON, kit.META_PATH), "name", "size", "time")
-				m.RenameAppend("name", "port")
-			}},
-			cli.START: {Name: "start port", Help: "启动", Hand: func(m *ice.Message, arg ...string) {
-				if m.Option(tcp.PORT) != "" {
-					p := kit.Path(m.Conf(cli.DAEMON, kit.META_PATH), m.Option(tcp.PORT))
-					if _, e := os.Stat(p); e == nil {
-						m.Option(cli.CMD_DIR, p)
-						m.Cmdy(cli.DAEMON, "bin/mysqld", m.Confv(SERVER, kit.Keym(cli.START)), "--port", m.Option(tcp.PORT))
-					}
-					return
-				}
-				m.Optionv(code.PREPARE, func(p string) []string {
-					m.Option(cli.CMD_DIR, p)
-					m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
-					return []string{"--port", path.Base(p)}
-				})
-				m.Echo(m.Cmdx(code.INSTALL, cli.START, m.Conf(SERVER, kit.Keym(runtime.GOOS)),
-					"bin/mysqld", m.Confv(SERVER, kit.Keym(cli.START))))
-
-				// 设置密码
-				m.Sleep("1s")
-				username := m.Conf(SERVER, kit.Keym(aaa.USERNAME))
-				password := m.Conf(SERVER, kit.Keym(aaa.PASSWORD))
-				m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket", "-u", username,
-					"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
-
-				// 触发事件
-				m.Event(MYSQL_SERVER_START, aaa.USERNAME, username, aaa.PASSWORD, password,
-					tcp.HOST, tcp.LOCALHOST, tcp.PORT, path.Base(m.Option(cli.CMD_DIR)))
-			}},
-		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
-			m.Cmdy(code.INSTALL, m.Conf(SERVER, kit.Keym(runtime.GOOS)), arg)
-		}},
-	},
+	inputs   string `name:"inputs" help:"补全"`
+	download string `name:"download" help:"下载"`
+	build    string `name:"build" help:"构建"`
+	start    string `name:"start" help:"启动"`
+	list     string `name:"list port path auto start build download" help:"服务器"`
 }
 
-func init() { code.Index.Register(Index, nil) }
+func (s server) Inputs(m *ice.Message, arg ...string) {
+	switch arg[0] {
+	case tcp.PORT:
+		m.Cmdy(tcp.SERVER)
+	}
+}
+func (s server) Download(m *ice.Message, arg ...string) {
+	m.Cmdy(code.INSTALL, web.DOWNLOAD, m.Conf(tcp.SERVER, kit.META_SOURCE))
+}
+func (s server) Build(m *ice.Message, arg ...string) {
+	m.Optionv(code.PREPARE, func(p string) {
+		m.Option(cli.CMD_DIR, p)
+		m.Cmdy(cli.SYSTEM, "cmake", "./",
+			"-DCMAKE_INSTALL_PREFIX=./_install",
+			"-DDEFAULT_COLLATION=utf8_general_ci",
+			"-DDEFAULT_CHARSET=utf8",
+			"-DEXTRA_CHARSETS=all")
+	})
+	m.Cmdy(code.INSTALL, cli.BUILD, m.Conf(tcp.SERVER, kit.META_SOURCE))
+}
+func (s server) Start(m *ice.Message, arg ...string) {
+	args := []string{"bin/mysqld",
+		"--basedir=./", "--datadir=./data", "--plugin-dir=./lib/plugin",
+		"--log-error=./mysqld.log", "--pid-file=./mysqld.pid",
+		"--socket=./mysqld.socket",
+	}
+
+	if kit.Int(m.Option(tcp.PORT)) >= 10000 {
+		p := kit.Path(m.Conf(cli.DAEMON, kit.META_PATH), m.Option(tcp.PORT))
+		if _, e := os.Stat(p); e == nil {
+			m.Option(cli.CMD_DIR, p)
+			m.Cmdy(cli.DAEMON, args, "--port", m.Option(tcp.PORT))
+		}
+		return
+	}
+
+	m.Optionv(code.PREPARE, func(p string) []string {
+		m.Option(cli.CMD_DIR, p)
+		m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
+		return []string{"--port", path.Base(p)}
+	})
+	m.Echo(m.Cmdx(code.INSTALL, cli.START, m.Conf(tcp.SERVER, kit.META_SOURCE), args))
+
+	// 设置密码
+	m.Sleep("1s")
+	username := m.Conf(tcp.SERVER, kit.Keym(aaa.USERNAME))
+	password := m.Conf(tcp.SERVER, kit.Keym(aaa.PASSWORD))
+	m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket", "-u", username,
+		"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
+
+	// // 触发事件
+	// m.Event(MYSQL_SERVER_START, aaa.USERNAME, username, aaa.PASSWORD, password,
+	// 	tcp.HOST, tcp.LOCALHOST, tcp.PORT, path.Base(m.Option(cli.CMD_DIR)))
+}
+func (s server) List(m *ice.Message, arg ...string) {
+	m.Cmdy(code.INSTALL, m.Conf(tcp.SERVER, kit.META_SOURCE), arg)
+}
+
+func init() { ice.Cmd("web.code.mysql.server", server{}) }

@@ -4,4 +4,5 @@ export CGO_ENABLED=0
 
 all:
 	@echo && date
-	go build -v -o bin/ice.bin src/main.go && chmod u+x bin/ice.bin && chmod u+x bin/ice.sh && ./bin/ice.sh restart
+	[ -f src/version.go ] || echo "package main" > src/version.go
+	go build -v -o bin/ice.bin src/main.go src/version.go && chmod u+x bin/ice.bin && ./bin/ice.sh restart

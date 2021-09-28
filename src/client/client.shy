@@ -1,6 +1,6 @@
 chapter "client"
-field "查询" web.code.mysql.query
 field "连接" web.code.mysql.client
+field "查询" web.code.mysql.query
 
 section "数据库"
 field "创建库" web.code.mysql.client args.0 'random' args.1 `

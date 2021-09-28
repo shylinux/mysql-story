@@ -1,13 +1,8 @@
-~cli
-
 ~aaa
 
 ~web
 
-~web.wiki
-    config word meta.path usr
+~cli
 
 ~mdb
-
-~ssh
 
