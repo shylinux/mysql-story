@@ -13,26 +13,30 @@ import (
 	kit "shylinux.com/x/toolkits"
 )
 
-type client struct {
+const (
+	DATABASE = "database"
+)
+
+type Client struct {
 	ice.Hash
 
-	short string `data:"name"`
-	field string `data:"time,name,username,host,port,database"`
+	short string `data:"session"`
+	field string `data:"time,session,username,host,port,database"`
 
-	create string `name:"create name=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
-	list   string `name:"list name run:button create cmd:textarea" help:"客户端"`
+	create string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
+	list   string `name:"list session run:button create cmd:textarea" help:"客户端"`
 }
 
-func (c client) Inputs(m *ice.Message, arg ...string) {
+func (c Client) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
-		m.Cmdy(tcp.SERVER)
+		m.Cmdy(tcp.SERVER).Append("append", "port", "status", "time")
 	}
 }
-func (c client) List(m *ice.Message, arg ...string) {
+func (c Client) List(m *ice.Message, arg ...string) {
 	if len(arg) < 2 || arg[0] == "" { // 连接列表
-		defer m.PushAction(mdb.REMOVE)
 		c.Hash.List(m, kit.Slice(arg, 0, 1)...)
+		m.PushAction(c.Hash.Remove)
 		return
 	}
 
@@ -45,18 +49,17 @@ func (c client) List(m *ice.Message, arg ...string) {
 	}
 }
 
-func init() { ice.Cmd("web.code.mysql.client", client{}) }
+func init() { ice.Cmd("web.code.mysql.client", Client{}) }
 
 func _sql_meta(m *ice.Message, h string, db string) string {
-	m.Option(mdb.FIELDS, "time,name,username,password,host,port,database")
-	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, kit.MDB_NAME, h)
+	m.Option(mdb.FIELDS, "time,session,username,password,host,port,database")
+	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, "session", h)
 	m.Assert(msg.Append(tcp.PORT) != "")
 
 	return kit.Format("%s:%s@tcp(%s:%s)/%s?charset=utf8", msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD),
-		msg.Append(tcp.HOST), msg.Append(tcp.PORT), kit.Select(msg.Append("database"), db))
+		msg.Append(tcp.HOST), msg.Append(tcp.PORT), kit.Select(msg.Append(DATABASE), db))
 }
 func _sql_open(m *ice.Message, dsn, stm string, cb func(*sqls.DB)) *ice.Message {
-	m.Log_MODIFY("dsn", dsn, "stm", stm)
 	if db, e := sqls.Open("mysql", dsn); m.Assert(e) {
 		defer db.Close()
 		cb(db)
@@ -64,6 +67,7 @@ func _sql_open(m *ice.Message, dsn, stm string, cb func(*sqls.DB)) *ice.Message 
 	return m
 }
 func _sql_exec(m *ice.Message, dsn string, stm string, arg ...interface{}) *ice.Message {
+	m.Log_MODIFY("dsn", dsn, "stm", stm, "arg", arg)
 	return _sql_open(m, dsn, stm, func(db *sqls.DB) {
 		m.Push(kit.MDB_TIME, m.Time())
 		if res, err := db.Exec(stm, arg...); err != nil {

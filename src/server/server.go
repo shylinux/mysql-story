@@ -8,44 +8,40 @@ import (
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/cli"
 	"shylinux.com/x/icebergs/base/tcp"
-	"shylinux.com/x/icebergs/base/web"
-	"shylinux.com/x/icebergs/core/code"
 	kit "shylinux.com/x/toolkits"
 )
 
-type server struct {
-	source   string `data:"http://mirrors.tencent.com/slackware/slackware64-14.0/patches/source/mysql/mysql-5.5.52.tar.xz"`
+type Server struct {
+	ice.Code
+
+	source string `data:"http://mirrors.tencent.com/slackware/slackware64-14.0/patches/source/mysql/mysql-5.5.52.tar.xz"`
+	start  string `name:"start port" help:"启动"`
+
 	username string `data:"root"`
 	password string `data:"root"`
-
-	inputs   string `name:"inputs" help:"补全"`
-	download string `name:"download" help:"下载"`
-	build    string `name:"build" help:"构建"`
-	start    string `name:"start" help:"启动"`
-	list     string `name:"list port path auto start build download" help:"服务器"`
 }
 
-func (s server) Inputs(m *ice.Message, arg ...string) {
+func (s Server) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
-		m.Cmdy(tcp.SERVER)
+		s.List(m)
+		m.Append("append", "port", "status", "time")
 	}
 }
-func (s server) Download(m *ice.Message, arg ...string) {
-	m.Cmdy(code.INSTALL, web.DOWNLOAD, m.Conf(tcp.SERVER, kit.META_SOURCE))
+func (s Server) Download(m *ice.Message, arg ...string) {
+	s.Code.Download(m, m.Config(cli.SOURCE), arg...)
 }
-func (s server) Build(m *ice.Message, arg ...string) {
-	m.Optionv(code.PREPARE, func(p string) {
-		m.Option(cli.CMD_DIR, p)
-		m.Cmdy(cli.SYSTEM, "cmake", "./",
+func (s Server) Build(m *ice.Message, arg ...string) {
+	s.Code.Prepare(m, func(p string) {
+		s.Code.System(m, p, "cmake", "./",
 			"-DCMAKE_INSTALL_PREFIX=./_install",
 			"-DDEFAULT_COLLATION=utf8_general_ci",
 			"-DDEFAULT_CHARSET=utf8",
 			"-DEXTRA_CHARSETS=all")
 	})
-	m.Cmdy(code.INSTALL, cli.BUILD, m.Conf(tcp.SERVER, kit.META_SOURCE))
+	s.Code.Build(m, m.Config(cli.SOURCE), arg...)
 }
-func (s server) Start(m *ice.Message, arg ...string) {
+func (s Server) Start(m *ice.Message, arg ...string) {
 	args := []string{"bin/mysqld",
 		"--basedir=./", "--datadir=./data", "--plugin-dir=./lib/plugin",
 		"--log-error=./mysqld.log", "--pid-file=./mysqld.pid",
@@ -55,32 +51,26 @@ func (s server) Start(m *ice.Message, arg ...string) {
 	if kit.Int(m.Option(tcp.PORT)) >= 10000 {
 		p := kit.Path(m.Conf(cli.DAEMON, kit.META_PATH), m.Option(tcp.PORT))
 		if _, e := os.Stat(p); e == nil {
-			m.Option(cli.CMD_DIR, p)
-			m.Cmdy(cli.DAEMON, args, "--port", m.Option(tcp.PORT))
+			s.Code.Daemon(m, p, append(args, "--port", m.Option(tcp.PORT))...)
 		}
-		return
+		return // 重启服务
 	}
 
-	m.Optionv(code.PREPARE, func(p string) []string {
-		m.Option(cli.CMD_DIR, p)
-		m.Cmd(cli.SYSTEM, "./scripts/mysql_install_db", "--datadir=./data")
+	// 启动服务
+	s.Code.Prepare(m, func(p string) []string {
+		s.Code.System(m, p, "./scripts/mysql_install_db", "--datadir=./data")
 		return []string{"--port", path.Base(p)}
 	})
-	m.Echo(m.Cmdx(code.INSTALL, cli.START, m.Conf(tcp.SERVER, kit.META_SOURCE), args))
+	s.Code.Start(m, m.Config(cli.SOURCE), args...)
 
 	// 设置密码
-	m.Sleep("1s")
-	username := m.Conf(tcp.SERVER, kit.Keym(aaa.USERNAME))
-	password := m.Conf(tcp.SERVER, kit.Keym(aaa.PASSWORD))
-	m.Cmd(cli.SYSTEM, "bin/mysql", "-S", "data/mysqld.socket", "-u", username,
+	m.Sleep("3s")
+	username, password := m.Config(aaa.USERNAME), m.Config(aaa.PASSWORD)
+	s.Code.System(m, m.Option(cli.CMD_DIR), "bin/mysql", "-S", "data/mysqld.socket", "-u", username,
 		"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
-
-	// // 触发事件
-	// m.Event(MYSQL_SERVER_START, aaa.USERNAME, username, aaa.PASSWORD, password,
-	// 	tcp.HOST, tcp.LOCALHOST, tcp.PORT, path.Base(m.Option(cli.CMD_DIR)))
 }
-func (s server) List(m *ice.Message, arg ...string) {
-	m.Cmdy(code.INSTALL, m.Conf(tcp.SERVER, kit.META_SOURCE), arg)
+func (s Server) List(m *ice.Message, arg ...string) {
+	s.Code.List(m, m.Config(cli.SOURCE), arg...)
 }
 
-func init() { ice.Cmd("web.code.mysql.server", server{}) }
+func init() { ice.Cmd("web.code.mysql.server", Server{}) }

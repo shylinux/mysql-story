@@ -10,15 +10,19 @@ import (
 	kit "shylinux.com/x/toolkits"
 )
 
+const (
+	SQL = "sql"
+)
+
 type sql struct{}
 
 func (s sql) Init(m *ice.Message, arg ...string) {
-	m.Conf("sql", kit.MDB_META, kit.Dict(
+	m.Conf(SQL, kit.MDB_META, kit.Dict(
 		code.PLUG, kit.Dict(
 			code.PREFIX, kit.Dict(
 				"-- ", code.COMMENT,
 			),
-			"_keyword", kit.Dict(
+			code.PREPARE, kit.Dict(
 				code.KEYWORD, kit.Simple(
 					"CREATE", "DROP", "USE", "IF",
 				),
@@ -34,13 +38,13 @@ func (s sql) Init(m *ice.Message, arg ...string) {
 			code.KEYWORD, kit.Dict(),
 		),
 	))
-	m.Cmd(mdb.PLUGIN, mdb.CREATE, "sql", m.Prefix("sql"))
-	m.Cmd(mdb.RENDER, mdb.CREATE, "sql", m.Prefix("sql"))
-	code.LoadPlug(m.Message, "sql")
+	m.Cmd(mdb.PLUGIN, mdb.CREATE, SQL, m.PrefixKey())
+	m.Cmd(mdb.RENDER, mdb.CREATE, SQL, m.PrefixKey())
+	code.LoadPlug(m.Message, SQL)
 	m.Load()
 }
 func (s sql) Plugin(m *ice.Message, arg ...string) {
-	m.Echo(m.Conf("sql", kit.Keym(code.PLUG)))
+	m.Echo(m.Config(code.PLUG))
 }
 func (s sql) Render(m *ice.Message, arg ...string) {
 	m.Cmdy(nfs.CAT, path.Join(arg[2], arg[1]))
