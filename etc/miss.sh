@@ -4,7 +4,6 @@ if [ "$ISH_CONF_PRE" = "" ]; then
     source $PWD/.ish/plug.sh || source $HOME/.ish/plug.sh
 fi
 
-
 require miss.sh
 ish_miss_prepare_compile
 ish_miss_prepare_develop
