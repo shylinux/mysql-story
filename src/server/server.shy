@@ -1,14 +1,14 @@
 chapter "server"
 field "数据库" web.code.mysql.server
-# field "源代码" web.code.inner args `usr/install/mysql-5.5.52/ sql/main.cc 30`
+# field "源代码" web.code.inner args `usr/install/mysql-5.6.33/ sql/main.cc 30`
 
 section "安装编译"
 spark shell `
 yum install -y wget make cmake gcc-c++ bison.x86_64
 yum install -y libevent-devel.x86_64 ncurses-devel.x86_64 openssl-devel.x86_64
 
-wget http://mirrors.tencent.com/slackware/slackware64-14.0/patches/source/mysql/mysql-5.5.52.tar.xz
-tar xvf mysql-5.5.52.tar.xz && cd mysql-5.5.52
+wget http://mirrors.tencent.com/ubuntu/pool/universe/m/mysql-5.6/mysql-5.6_5.6.33.orig.tar.gz
+tar xvf mysql-5.6.33.tar.xz && cd mysql-5.6.33
 
 cmake ./ -DCMAKE_INSTALL_PREFIX=./_install -DDEFAULT_COLLATION=utf8_general_ci -DDEFAULT_CHARSET=utf8 -DEXTRA_CHARSETS=all
 make -j8 && make install

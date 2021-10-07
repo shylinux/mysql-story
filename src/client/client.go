@@ -8,7 +8,9 @@ import (
 
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
+	"shylinux.com/x/icebergs/base/cli"
 	"shylinux.com/x/icebergs/base/mdb"
+	"shylinux.com/x/icebergs/base/nfs"
 	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
 )
@@ -24,6 +26,7 @@ type Client struct {
 	field string `data:"time,session,username,host,port,database"`
 
 	create string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
+	script string `name:"script file@key" help:"脚本"`
 	list   string `name:"list session run:button create cmd:textarea" help:"客户端"`
 }
 
@@ -31,7 +34,18 @@ func (c Client) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
 		m.Cmdy(tcp.SERVER).Append("append", "port", "status", "time")
+	case nfs.FILE:
+		m.Cmdy(nfs.DIR, arg[1:])
+		m.ProcessAgain()
 	}
+}
+func (q Query) Script(m *ice.Message, arg ...string) {
+	m.Option(mdb.FIELDS, "time,session,username,password,host,port,database")
+	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, m.OptionSimple("session"))
+
+	m.Cmd(cli.SYSTEM, "mysql", "-h", "127.0.0.1", "-P", msg.Append(tcp.PORT),
+		"-u", msg.Append(aaa.USERNAME), "--password="+msg.Append(aaa.PASSWORD),
+		"-e", "source "+m.Option(nfs.FILE))
 }
 func (c Client) List(m *ice.Message, arg ...string) {
 	if len(arg) < 2 || arg[0] == "" { // 连接列表

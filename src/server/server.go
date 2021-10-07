@@ -14,7 +14,7 @@ import (
 type Server struct {
 	ice.Code
 
-	source string `data:"http://mirrors.tencent.com/slackware/slackware64-14.0/patches/source/mysql/mysql-5.5.52.tar.xz"`
+	source string `data:"http://mirrors.tencent.com/ubuntu/pool/universe/m/mysql-5.6/mysql-5.6_5.6.33.orig.tar.gz"`
 	start  string `name:"start port" help:"启动"`
 
 	username string `data:"root"`
@@ -39,7 +39,7 @@ func (s Server) Build(m *ice.Message, arg ...string) {
 			"-DDEFAULT_CHARSET=utf8",
 			"-DEXTRA_CHARSETS=all")
 	})
-	s.Code.Build(m, m.Config(cli.SOURCE), arg...)
+	s.Code.Build(m, s.Code.PathOther(m, m.Config(cli.SOURCE)), arg...)
 }
 func (s Server) Start(m *ice.Message, arg ...string) {
 	args := []string{"bin/mysqld",
@@ -61,7 +61,7 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 		s.Code.System(m, p, "./scripts/mysql_install_db", "--datadir=./data")
 		return []string{"--port", path.Base(p)}
 	})
-	s.Code.Start(m, m.Config(cli.SOURCE), args...)
+	s.Code.Start(m, s.Code.PathOther(m, m.Config(cli.SOURCE)), args...)
 
 	// 设置密码
 	m.Sleep("3s")
@@ -70,7 +70,7 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 		"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
 }
 func (s Server) List(m *ice.Message, arg ...string) {
-	s.Code.List(m, m.Config(cli.SOURCE), arg...)
+	s.Code.List(m, s.Code.PathOther(m, m.Config(cli.SOURCE)), arg...)
 }
 
 func init() { ice.Cmd("web.code.mysql.server", Server{}) }
