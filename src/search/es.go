@@ -55,7 +55,7 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 			}
 
 			m.Option(web.SPIDE_HEADER, web.ContentType, web.ContentJSON)
-			m.Echo(kit.Formats(kit.UnMarshal(m.Cmdx(web.SPIDE, web.SPIDE_DEV, web.SPIDE_RAW,
+			m.Echo(kit.Formats(kit.UnMarshal(m.Cmdx(web.SPIDE, ice.DEV, web.SPIDE_RAW,
 				web.SPIDE_GET, kit.MergeURL2(m.Conf(ES, "meta.address"), kit.Select("/", arg, 0))))))
 		}},
 		"CMD": {Name: "CMD 执行:button method:select=GET|PUT|POST|DELETE cmd:text=/ data:textarea", Help: "命令", Action: map[string]*ice.Action{}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
@@ -70,7 +70,7 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 			}
 
 			m.Option(web.SPIDE_HEADER, web.ContentType, web.ContentJSON)
-			prefix := []string{web.SPIDE, web.SPIDE_DEV, web.SPIDE_RAW, arg[0], kit.MergeURL2(m.Conf(ES, "meta.address"), arg[1])}
+			prefix := []string{web.SPIDE, ice.DEV, web.SPIDE_RAW, arg[0], kit.MergeURL2(m.Conf(ES, "meta.address"), arg[1])}
 
 			if len(arg) > 2 {
 				prefix = append(prefix, web.SPIDE_DATA, arg[2])
