@@ -1,5 +1,5 @@
-export GOPROXY=https://goproxy.cn
-export GORPIVATE=github.com
+export GOPROXY=https://goproxy.cn,direct
+export GOPRIVATE=shylinux.com,github.com
 export CGO_ENABLED=0
 
 all:
