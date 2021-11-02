@@ -4,7 +4,7 @@ go 1.11
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0
-	shylinux.com/x/ice v0.3.4
-	shylinux.com/x/icebergs v0.6.2
-	shylinux.com/x/toolkits v0.3.8
+	shylinux.com/x/ice v0.3.5
+	shylinux.com/x/icebergs v0.6.3
+	shylinux.com/x/toolkits v0.3.9
 )
