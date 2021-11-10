@@ -4,7 +4,7 @@ import (
 	sqls "database/sql"
 	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "shylinux.com/x/go-sql-mysql"
 
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"

@@ -1,5 +1,5 @@
-github.com/go-sql-driver/mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
-github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
+shylinux.com/x/go-sql-mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
+shylinux.com/x/go-sql-mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 shylinux.com/x/go-qrcode v0.0.1 h1:/eOGqMj1qtgs9Ymd12zTUa1gcJZs9S92kj2lb0QzKsE=
 shylinux.com/x/go-qrcode v0.0.1/go.mod h1:KAbtU+KwiiABMZ/CJ0zh9PI2AX82Uf9rRYcQ4ODm4po=
 shylinux.com/x/ice v0.3.8 h1:MmURbRP3jJjnSnQqP2j+GQQhVSNCE3sUQi8O6a/bN7s=
