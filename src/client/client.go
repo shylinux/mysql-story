@@ -98,6 +98,7 @@ func _sql_exec(m *ice.Message, dsn string, stm string, arg ...interface{}) *ice.
 }
 func _sql_query(m *ice.Message, dsn string, stm string, arg ...interface{}) *ice.Message {
 	return _sql_open(m, dsn, stm, func(db *sqls.DB) {
+		m.Info("dsn: %v stm: %v", dsn, stm)
 		if rows, err := db.Query(stm, arg...); m.Assert(err) {
 			head, err := rows.Columns()
 			m.Assert(err)
