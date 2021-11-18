@@ -17,7 +17,11 @@ type Query struct {
 }
 
 func (q Query) Modify(m *ice.Message, arg ...string) {
-	p := _sql_meta(m, m.Option(kit.MDB_NAME), m.Option(DATABASE))
+	if m.Option("table") == "" {
+		q.Hash.Modify(m, arg...)
+		return
+	}
+	p := _sql_meta(m, m.Option("session"), m.Option(DATABASE))
 	_sql_exec(m, p, kit.Format("update %s set %s='%s' where id=%s", m.Option(kit.MDB_TABLE), arg[0], arg[1], m.Option(kit.MDB_ID)))
 }
 func (q Query) Prev(m *ice.Message, arg ...string) {
