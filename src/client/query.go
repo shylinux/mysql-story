@@ -56,7 +56,7 @@ func (q Query) List(m *ice.Message, arg ...string) {
 	m.StatusTimeCountTotal(_query_total(m, arg...))
 }
 
-func init() { ice.CodeModCmd(Query{}) }
+func init() { ice.Cmd("web.code.mysql.query", Query{}) }
 
 func _query_total(m *ice.Message, arg ...string) string {
 	if len(arg) > 2 {
