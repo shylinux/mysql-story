@@ -7,6 +7,7 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/cli"
+	"shylinux.com/x/icebergs/base/nfs"
 	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
 )
@@ -32,7 +33,7 @@ func (s Server) Inputs(m *ice.Message, arg ...string) {
 	}
 }
 func (s Server) Download(m *ice.Message, arg ...string) {
-	s.Code.Download(m, m.Config(cli.SOURCE), arg...)
+	s.Code.Download(m, m.Config(nfs.SOURCE), arg...)
 }
 func (s Server) Build(m *ice.Message, arg ...string) {
 	s.Code.Prepare(m, func(p string) {
@@ -42,7 +43,7 @@ func (s Server) Build(m *ice.Message, arg ...string) {
 			"-DDEFAULT_CHARSET=utf8",
 			"-DEXTRA_CHARSETS=all")
 	})
-	s.Code.Build(m, s.Code.PathOther(m, m.Config(cli.SOURCE)), arg...)
+	s.Code.Build(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), arg...)
 }
 func (s Server) Start(m *ice.Message, arg ...string) {
 	args := []string{"bin/mysqld",
@@ -64,7 +65,7 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 		s.Code.System(m, p, "./scripts/mysql_install_db", "--datadir=./data")
 		return []string{"--port", path.Base(p)}
 	})
-	s.Code.Start(m, s.Code.PathOther(m, m.Config(cli.SOURCE)), args...)
+	s.Code.Start(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), args...)
 
 	// 设置密码
 	m.Sleep("3s")
@@ -73,7 +74,7 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 		"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
 }
 func (s Server) List(m *ice.Message, arg ...string) {
-	s.Code.List(m, s.Code.PathOther(m, m.Config(cli.SOURCE)), arg...)
+	s.Code.List(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), arg...)
 }
 
 func init() { ice.Cmd("web.code.mysql.server", Server{}) }
