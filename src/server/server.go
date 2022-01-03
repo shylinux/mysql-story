@@ -53,7 +53,7 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 	}
 
 	if kit.Int(m.Option(tcp.PORT)) >= 10000 {
-		p := kit.Path(m.Conf(cli.DAEMON, kit.META_PATH), m.Option(tcp.PORT))
+		p := kit.Path(m.Conf(cli.DAEMON, kit.Keym(nfs.PATH)), m.Option(tcp.PORT))
 		if _, e := os.Stat(p); e == nil {
 			s.Code.Daemon(m, p, append(args, "--port", m.Option(tcp.PORT))...)
 		}
