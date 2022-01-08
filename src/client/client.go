@@ -33,7 +33,7 @@ type Client struct {
 func (c Client) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
-		m.Cmdy(tcp.SERVER).Append("append", "port", "status", "time")
+		m.Cmdy(tcp.SERVER).Cut("port,status,time")
 	case nfs.FILE:
 		m.Cmdy(nfs.DIR, arg[1:])
 		m.ProcessAgain()
@@ -54,16 +54,16 @@ func (c Client) List(m *ice.Message, arg ...string) {
 		return
 	}
 
-	if dsn := _sql_meta(m, kit.Select(arg[0], kit.MDB_RANDOMS, arg[0] == "random"), ""); strings.Contains(strings.ToLower(arg[1]), "show") {
+	if dsn := _sql_meta(m, kit.Select(arg[0], mdb.RANDOMS, arg[0] == mdb.RANDOM), ""); strings.Contains(strings.ToLower(arg[1]), "show") {
 		_sql_query(m, dsn, arg[1]) // 查询定义
-	} else if strings.Contains(strings.ToLower(arg[1]), "select") {
+	} else if strings.Contains(strings.ToLower(arg[1]), mdb.SELECT) {
 		_sql_query(m, dsn, arg[1]) // 查询数据
 	} else {
 		_sql_exec(m, dsn, arg[1]) // 操作数据
 	}
 }
 
-func init() { ice.Cmd("web.code.mysql.client", Client{}) }
+func init() { ice.CodeModCmd(Client{}) }
 
 func _sql_meta(m *ice.Message, h string, db string) string {
 	m.Option(mdb.FIELDS, "time,session,username,password,host,port,database")

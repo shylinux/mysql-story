@@ -43,20 +43,20 @@ func (q Query) List(m *ice.Message, arg ...string) {
 		_sql_query(m.Spawn(), dsn, "show tables").Table(func(index int, value map[string]string, head []string) { m.Push("table", value[head[0]]) })
 		m.Table(func(index int, value map[string]string, head []string) {
 			msg := _sql_query(m.Spawn(), dsn, kit.Format("show fields from %s", value["table"]))
-			m.Push("field", strings.Join(msg.Appendv("Field"), ","))
+			m.Push("field", strings.Join(msg.Appendv("Field"), ice.FS))
 		})
 
 	} else if len(arg) < 4 || arg[3] == "" { // 数据列表
 		_sql_query(m, dsn, kit.Format("select * from %s limit %s offset %s", arg[2], kit.Select("10", arg, 4), kit.Select("0", arg, 5)))
 
 	} else { // 数据详情
-		m.Option(mdb.FIELDS, mdb.DETAIL)
+		m.OptionFields(mdb.DETAIL)
 		_sql_query(m, dsn, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
 	}
 	m.StatusTimeCountTotal(_query_total(m, arg...))
 }
 
-func init() { ice.Cmd("web.code.mysql.query", Query{}) }
+func init() { ice.CodeModCmd(Query{}) }
 
 func _query_total(m *ice.Message, arg ...string) string {
 	if len(arg) > 2 {

@@ -50,4 +50,4 @@ func (s sql) Render(m *ice.Message, arg ...string) {
 	m.Cmdy(nfs.CAT, path.Join(arg[2], arg[1]))
 }
 
-func init() { ice.Cmd("web.code.mysql.sql", sql{}) }
+func init() { ice.CodeModCmd(sql{}) }

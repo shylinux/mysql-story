@@ -68,7 +68,7 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 	s.Code.Start(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), args...)
 
 	// 设置密码
-	m.Sleep("3s")
+	m.Sleep3s()
 	username, password := m.Config(aaa.USERNAME), m.Config(aaa.PASSWORD)
 	s.Code.System(m, m.Option(cli.CMD_DIR), "bin/mysql", "-S", "data/mysqld.socket", "-u", username,
 		"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
@@ -77,4 +77,4 @@ func (s Server) List(m *ice.Message, arg ...string) {
 	s.Code.List(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), arg...)
 }
 
-func init() { ice.Cmd("web.code.mysql.server", Server{}) }
+func init() { ice.CodeModCmd(Server{}) }
