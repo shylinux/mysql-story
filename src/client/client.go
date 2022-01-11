@@ -40,7 +40,7 @@ func (c Client) Inputs(m *ice.Message, arg ...string) {
 	}
 }
 func (q Query) Script(m *ice.Message, arg ...string) {
-	m.Option(mdb.FIELDS, "time,session,username,password,host,port,database")
+	m.OptionFields("time,session,username,password,host,port,database")
 	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, m.OptionSimple("session"))
 
 	m.Cmd(cli.SYSTEM, "mysql", "-h", "127.0.0.1", "-P", msg.Append(tcp.PORT),
@@ -66,7 +66,7 @@ func (c Client) List(m *ice.Message, arg ...string) {
 func init() { ice.CodeModCmd(Client{}) }
 
 func _sql_meta(m *ice.Message, h string, db string) string {
-	m.Option(mdb.FIELDS, "time,session,username,password,host,port,database")
+	m.OptionFields("time,session,username,password,host,port,database")
 	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, "session", h)
 	m.Assert(msg.Append(tcp.PORT) != "")
 
