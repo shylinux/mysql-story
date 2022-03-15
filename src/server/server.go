@@ -1,7 +1,6 @@
 package server
 
 import (
-	"os"
 	"path"
 
 	"shylinux.com/x/ice"
@@ -54,10 +53,10 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 
 	if kit.Int(m.Option(tcp.PORT)) >= 10000 {
 		p := kit.Path(m.Conf(cli.DAEMON, kit.Keym(nfs.PATH)), m.Option(tcp.PORT))
-		if _, e := os.Stat(p); e == nil {
+		if kit.FileExists(p) {
 			s.Code.Daemon(m, p, append(args, "--port", m.Option(tcp.PORT))...)
+			return // 重启服务
 		}
-		return // 重启服务
 	}
 
 	// 启动服务
