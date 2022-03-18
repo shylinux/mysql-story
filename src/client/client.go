@@ -16,6 +16,8 @@ import (
 )
 
 const (
+	MYSQL    = "mysql"
+	SESSION  = "session"
 	DATABASE = "database"
 )
 
@@ -26,7 +28,7 @@ type Client struct {
 	field string `data:"time,session,username,host,port,database"`
 
 	create string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
-	script string `name:"script file@key" help:"脚本"`
+	script string `name:"script session database file@key" help:"脚本"`
 	list   string `name:"list session run:button create cmd:textarea" help:"客户端"`
 }
 
@@ -39,11 +41,26 @@ func (c Client) Inputs(m *ice.Message, arg ...string) {
 		m.ProcessAgain()
 	}
 }
-func (q Query) Script(m *ice.Message, arg ...string) {
-	m.OptionFields("time,session,username,password,host,port,database")
-	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, m.OptionSimple("session"))
+func (c Client) Script(m *ice.Message, arg ...string) {
+	if db, e := sqls.Open(MYSQL, _sql_meta(m, m.Option(SESSION), m.Option(DATABASE))); m.Assert(e) {
+		defer db.Close()
 
-	m.Cmd(cli.SYSTEM, "mysql", "-h", "127.0.0.1", "-P", msg.Append(tcp.PORT),
+		ls := strings.Split(m.Cmdx(nfs.CAT, kit.Path(m.Option(nfs.FILE))), ";")
+		for _, line := range ls {
+			if strings.TrimSpace(line) == "" {
+				continue
+			}
+			res, err := db.Exec(line)
+			m.Push("res", kit.Format(res))
+			m.Push("err", kit.Format(err))
+			m.Push("line", line)
+		}
+	}
+	return
+
+	m.OptionFields("time,session,username,password,host,port,database")
+	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, m.OptionSimple(SESSION))
+	m.Cmd(cli.SYSTEM, MYSQL, "-h", "127.0.0.1", "-P", msg.Append(tcp.PORT),
 		"-u", msg.Append(aaa.USERNAME), "--password="+msg.Append(aaa.PASSWORD),
 		"-e", "source "+m.Option(nfs.FILE))
 }
@@ -67,14 +84,14 @@ func init() { ice.CodeModCmd(Client{}) }
 
 func _sql_meta(m *ice.Message, h string, db string) string {
 	m.OptionFields("time,session,username,password,host,port,database")
-	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, "session", h)
+	msg := m.Cmd(mdb.SELECT, m.PrefixKey(), "", mdb.HASH, SESSION, h)
 	m.Assert(msg.Append(tcp.PORT) != "")
 
 	return kit.Format("%s:%s@tcp(%s:%s)/%s?charset=utf8", msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD),
 		msg.Append(tcp.HOST), msg.Append(tcp.PORT), kit.Select(msg.Append(DATABASE), db))
 }
 func _sql_open(m *ice.Message, dsn, stm string, cb func(*sqls.DB)) *ice.Message {
-	if db, e := sqls.Open("mysql", dsn); m.Assert(e) {
+	if db, e := sqls.Open(MYSQL, dsn); m.Assert(e) {
 		defer db.Close()
 		cb(db)
 	}

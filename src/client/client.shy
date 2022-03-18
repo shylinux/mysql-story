@@ -1,3 +1,6 @@
+spark shell `
+GRANT ALL PRIVILEGES ON *.* TO root@'%' IDENTIFIED BY 'root';
+`
 chapter "client"
 field "查询" web.code.mysql.query
 field "连接" web.code.mysql.client

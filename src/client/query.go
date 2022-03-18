@@ -13,7 +13,7 @@ type Query struct {
 
 	prev string `name:"prev" help:"上一页"`
 	next string `name:"next" help:"下一页"`
-	list string `name:"list session database table id auto page script create" help:"查询"`
+	list string `name:"list session database table id auto page" help:"查询"`
 }
 
 func (q Query) Modify(m *ice.Message, arg ...string) {
@@ -32,6 +32,7 @@ func (q Query) Next(m *ice.Message, arg ...string) {
 }
 func (q Query) List(m *ice.Message, arg ...string) {
 	if len(arg) < 1 || arg[0] == "" { // 连接列表
+		m.Action(q.Create)
 		q.Client.List(m)
 		return
 	}
@@ -40,6 +41,7 @@ func (q Query) List(m *ice.Message, arg ...string) {
 		_sql_query(m.Spawn(), dsn, "show databases").Table(func(index int, value map[string]string, head []string) { m.Push(DATABASE, value[head[0]]) })
 
 	} else if dsn := _sql_meta(m, arg[0], arg[1]); len(arg) < 3 || arg[2] == "" { // 关系表列表
+		m.Action(q.Script)
 		_sql_query(m.Spawn(), dsn, "show tables").Table(func(index int, value map[string]string, head []string) { m.Push("table", value[head[0]]) })
 		m.Table(func(index int, value map[string]string, head []string) {
 			msg := _sql_query(m.Spawn(), dsn, kit.Format("show fields from %s", value["table"]))
