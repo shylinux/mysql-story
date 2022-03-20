@@ -15,10 +15,8 @@ type Server struct {
 	ice.Code
 
 	source string `data:"http://mirrors.tencent.com/ubuntu/pool/universe/m/mysql-5.6/mysql-5.6_5.6.33.orig.tar.gz"`
-	start  string `name:"start port" help:"启动"`
-
-	username string `data:"root"`
-	password string `data:"root"`
+	start  string `name:"start port=10000 username=root password=root" help:"启动"`
+	list   string `name:"list port path auto start build download" help:"数据库"`
 }
 
 func (s Server) Inputs(m *ice.Message, arg ...string) {
@@ -52,8 +50,7 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 	}
 
 	if kit.Int(m.Option(tcp.PORT)) >= 10000 {
-		p := kit.Path(m.Conf(cli.DAEMON, kit.Keym(nfs.PATH)), m.Option(tcp.PORT))
-		if kit.FileExists(p) {
+		if p := kit.Path(m.Conf(cli.DAEMON, kit.Keym(nfs.PATH)), m.Option(tcp.PORT)); kit.FileExists(p) {
 			s.Code.Daemon(m, p, append(args, "--port", m.Option(tcp.PORT))...)
 			return // 重启服务
 		}
@@ -65,12 +62,11 @@ func (s Server) Start(m *ice.Message, arg ...string) {
 		return []string{"--port", path.Base(p)}
 	})
 	s.Code.Start(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), args...)
+	m.Sleep3s()
 
 	// 设置密码
-	m.Sleep3s()
-	username, password := m.Config(aaa.USERNAME), m.Config(aaa.PASSWORD)
-	s.Code.System(m, m.Option(cli.CMD_DIR), "bin/mysql", "-S", "data/mysqld.socket", "-u", username,
-		"-e", kit.Format("set password for %s@%s = password('%s')", username, tcp.LOCALHOST, password))
+	s.Code.System(m, m.Option(cli.CMD_DIR), "bin/mysql", "-S", "data/mysqld.socket", "-u", m.Option(aaa.USERNAME),
+		"-e", kit.Format("set password for %s@%s = password('%s')", m.Option(aaa.USERNAME), tcp.LOCALHOST, m.Option(aaa.PASSWORD)))
 }
 func (s Server) List(m *ice.Message, arg ...string) {
 	s.Code.List(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), arg...)

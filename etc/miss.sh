@@ -12,5 +12,6 @@ ish_miss_prepare_install
 ish_miss_prepare release
 ish_miss_prepare_icebergs
 ish_miss_prepare_toolkits
+ish_miss_prepare_volcanos
 
 make
