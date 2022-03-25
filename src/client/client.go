@@ -28,9 +28,11 @@ type Client struct {
 	short string `data:"session"`
 	field string `data:"time,session,username,host,port,database"`
 
+	script     string `name:"script session database file@key" help:"脚本"`
+	listscript string `name:"listscript" help:"脚本"`
+
 	create string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
-	script string `name:"script session database file@key" help:"脚本"`
-	list   string `name:"list session database run:button cmd:textarea" help:"客户端"`
+	list   string `name:"list session database run:button listscript cmd:textarea" help:"客户端"`
 }
 
 func (c Client) sql_meta(m *ice.Message, h string, db string) string {
@@ -46,12 +48,18 @@ func (c Client) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
 		m.Cmdy(tcp.SERVER).Cut("port,status,time")
+	case DATABASE:
+		m.Cmdy(c, m.Option(SESSION)).Cut(DATABASE)
 	case nfs.FILE:
 		m.Cmdy(nfs.DIR, arg[1:]).ProcessAgain()
 	}
 }
 func (c Client) Create(m *ice.Message, arg ...string) {
 	m.Cmdy(mdb.INSERT, ice.GetTypeKey(c), "", mdb.HASH, arg)
+}
+func (c Client) ListScript(m *ice.Message, arg ...string) {
+	m.Cmdy(nfs.DIR, "src/sql/").RenameAppend(nfs.PATH, nfs.FILE)
+	m.PushAction(c.Script)
 }
 func (c Client) Script(m *ice.Message, arg ...string) {
 	if db, e := sqls.Open(MYSQL, c.sql_meta(m, m.Option(SESSION), m.Option(DATABASE))); m.Assert(e) {
@@ -74,9 +82,12 @@ func (c Client) List(m *ice.Message, arg ...string) {
 		m.Cmdy(mdb.SELECT, ice.GetTypeKey(c), "", mdb.HASH, kit.Slice(arg, 0, 1))
 		m.PushAction(c.Hash.Remove)
 		m.Action(c.Create)
+		m.Sort(SESSION)
 	} else if dsn := c.sql_meta(m, kit.Select(arg[0], mdb.RANDOMS, arg[0] == mdb.RANDOM), kit.Select("", arg, 1)); len(arg) < 2 {
 		_sql_query(m, dsn, "show databases").ToLowerAppend()
+		m.Action(c.ListScript)
 	} else if len(arg) < 3 {
+		m.Action(c.ListScript)
 		_sql_query(m, dsn, "show tables")
 		m.RenameAppend(m.Appendv(ice.MSG_APPEND)[0], TABLE).Table(func(index int, value map[string]string, head []string) {
 			msg := _sql_query(m.Spawn(), dsn, kit.Format("show fields from %s", value[TABLE])).ToLowerAppend()
