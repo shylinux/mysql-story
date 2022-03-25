@@ -33,24 +33,29 @@ func (q Query) List(m *ice.Message, arg ...string) {
 		return
 	}
 
+	where := kit.Select("", arg, 6)
+	if where != "" {
+		where = "where " + where
+	}
 	if dsn := q.sql_meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 4 || arg[3] == "" { // 数据列表
-		_sql_query(m, dsn, kit.Format("select * from %s limit %s offset %s", arg[2], kit.Select("10", arg, 4), kit.Select("0", arg, 5)))
-		m.Option("offend", kit.Select("", arg, 5))
+		_sql_query(m, dsn, kit.Format("select * from %s %s limit %s offset %s",
+			arg[2], where, kit.Select("10", arg, 4), kit.Select("0", arg, 5)))
 		m.Option("limit", kit.Select("", arg, 4))
-		m.Action("page")
+		m.Option("offend", kit.Select("", arg, 5))
+		m.Action("page", "where:text=`"+kit.Select("", arg, 6)+"`")
 
 	} else { // 数据详情
 		m.OptionFields(mdb.DETAIL)
 		_sql_query(m, dsn, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
 	}
-	m.StatusTimeCountTotal(_query_total(m, q.sql_meta(m, arg[0], ""), arg...))
+	m.StatusTimeCountTotal(_query_total(m, q.sql_meta(m, arg[0], ""), where, arg...))
 }
 
 func init() { ice.CodeModCmd(Query{}) }
 
-func _query_total(m *ice.Message, dsn string, arg ...string) string {
+func _query_total(m *ice.Message, dsn string, where string, arg ...string) string {
 	if len(arg) > 2 {
-		msg := _sql_query(m.Spawn(), dsn, kit.Format("select count(*) as total from %s", kit.Keys(arg[1], arg[2])))
+		msg := _sql_query(m.Spawn(), dsn, kit.Format("select count(*) as total from %s %s", kit.Keys(arg[1], arg[2]), where))
 		return msg.Append(kit.MDB_TOTAL)
 	}
 	return ""
