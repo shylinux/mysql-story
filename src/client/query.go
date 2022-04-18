@@ -15,7 +15,7 @@ type Query struct {
 	Client
 	short string `data:"where"`
 	field string `data:"hash,time,where"`
-	list  string `name:"list session database table id auto" help:"查询"`
+	list  string `name:"list session@key database@key table@key id auto" help:"查询"`
 }
 
 func (s Query) Create(m *ice.Message, arg ...string) {
@@ -23,6 +23,12 @@ func (s Query) Create(m *ice.Message, arg ...string) {
 }
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
+	case SESSION:
+		s.List(m).Cut(SESSION)
+	case DATABASE:
+		s.List(m, m.Option(SESSION)).Cut(DATABASE)
+	case TABLE:
+		s.List(m, m.Option(SESSION), m.Option(DATABASE)).Cut(TABLE)
 	case WHERE:
 		s.Hash.Inputs(m, arg...)
 	}
@@ -42,10 +48,10 @@ func (s Query) Prev(m *ice.Message, arg ...string) {
 func (s Query) Next(m *ice.Message, arg ...string) {
 	mdb.NextPage(m.Message, arg[0], arg[1:]...)
 }
-func (s Query) List(m *ice.Message, arg ...string) {
+func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 1 || arg[0] == "" || len(arg) < 2 || arg[1] == "" || len(arg) < 3 || arg[2] == "" {
 		m.Cmdy(s.Client, arg)
-		return
+		return m
 	}
 
 	where := kit.Select("", arg, 6)
@@ -65,6 +71,7 @@ func (s Query) List(m *ice.Message, arg ...string) {
 		_sql_query(m, dsn, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
 	}
 	m.StatusTimeCountTotal(_query_total(m, s.sql_meta(m, arg[0], ""), where, arg...))
+	return m
 }
 
 func init() { ice.CodeModCmd(Query{}) }
