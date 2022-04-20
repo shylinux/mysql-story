@@ -15,7 +15,7 @@ type Query struct {
 	Client
 	short string `data:"where"`
 	field string `data:"hash,time,where"`
-	list  string `name:"list session@key database@key table@key id auto" help:"查询"`
+	list  string `name:"list session@key database@key table@key id auto" help:"数据库"`
 }
 
 func (s Query) Create(m *ice.Message, arg ...string) {
@@ -31,6 +31,7 @@ func (s Query) Inputs(m *ice.Message, arg ...string) {
 		s.List(m, m.Option(SESSION), m.Option(DATABASE)).Cut(TABLE)
 	case WHERE:
 		s.Hash.Inputs(m, arg...)
+		m.Sort("where")
 	}
 }
 func (s Query) Modify(m *ice.Message, arg ...string) {
@@ -70,7 +71,7 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 		m.OptionFields(mdb.DETAIL)
 		_sql_query(m, dsn, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
 	}
-	m.StatusTimeCountTotal(_query_total(m, s.sql_meta(m, arg[0], ""), where, arg...))
+	m.StatusTimeCountTotal(_query_total(m, s.sql_meta(m, arg[0], ""), where, arg...), "table", arg[2])
 	return m
 }
 
