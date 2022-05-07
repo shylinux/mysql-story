@@ -77,7 +77,6 @@ func (c Client) Script(m *ice.Message, arg ...string) {
 	}
 }
 func (c Client) List(m *ice.Message, arg ...string) {
-	m.Display("client.js")
 	if len(arg) < 1 || arg[0] == "" { // 连接列表
 		m.Fields(len(kit.Slice(arg, 0, 1)), m.Config(mdb.FIELD))
 		m.Cmdy(mdb.SELECT, ice.GetTypeKey(c), "", mdb.HASH, kit.Slice(arg, 0, 1))
