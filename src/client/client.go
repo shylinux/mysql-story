@@ -58,7 +58,7 @@ func (c Client) Create(m *ice.Message, arg ...string) {
 	m.Cmdy(mdb.INSERT, ice.GetTypeKey(c), "", mdb.HASH, arg)
 }
 func (c Client) ListScript(m *ice.Message, arg ...string) {
-	m.Cmdy(nfs.DIR, "src/sql/").RenameAppend(nfs.PATH, nfs.FILE)
+	m.Cmdy(nfs.DIR, "src/sql/", kit.Dict(nfs.DIR_DEEP, ice.TRUE)).RenameAppend(nfs.PATH, nfs.FILE)
 	m.PushAction(c.Script)
 }
 func (c Client) Script(m *ice.Message, arg ...string) {
