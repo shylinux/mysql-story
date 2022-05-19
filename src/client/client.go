@@ -29,10 +29,10 @@ type Client struct {
 	field string `data:"time,session,username,host,port,database"`
 
 	script     string `name:"script session database file@key" help:"脚本"`
-	listscript string `name:"listscript" help:"脚本"`
+	listScript string `name:"listScript" help:"脚本"`
 
 	create string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
-	list   string `name:"list session database run:button listscript cmd:textarea" help:"客户端"`
+	list   string `name:"list session database run:button listScript cmd:textarea" help:"客户端"`
 }
 
 func (c Client) sql_meta(m *ice.Message, h string, db string) string {
