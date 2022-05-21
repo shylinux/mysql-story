@@ -15,7 +15,7 @@ type Query struct {
 	Client
 	short string `data:"where"`
 	field string `data:"hash,time,where"`
-	list  string `name:"list session@key database@key table@key id auto" help:"数据库"`
+	list  string `name:"list session@key database@key table@key id auto listScript" help:"数据库"`
 }
 
 func (s Query) Create(m *ice.Message, arg ...string) {

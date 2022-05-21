@@ -25,10 +25,12 @@ const (
 type Client struct {
 	ice.Hash
 
-	short string `data:"session"`
-	field string `data:"time,session,username,host,port,database"`
+	short  string `data:"session"`
+	field  string `data:"time,session,username,host,port,database"`
+	script string `data:""`
 
-	script     string `name:"script session database file@key" help:"脚本"`
+	catScript  string `name:"catScript" help:"查看"`
+	runScript  string `name:"runScript session database file@key" help:"执行"`
 	listScript string `name:"listScript" help:"脚本"`
 
 	create string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
@@ -58,10 +60,13 @@ func (c Client) Create(m *ice.Message, arg ...string) {
 	m.Cmdy(mdb.INSERT, ice.GetTypeKey(c), "", mdb.HASH, arg)
 }
 func (c Client) ListScript(m *ice.Message, arg ...string) {
-	m.Cmdy(nfs.DIR, "src/sql/", kit.Dict(nfs.DIR_DEEP, ice.TRUE)).RenameAppend(nfs.PATH, nfs.FILE)
-	m.PushAction(c.Script)
+	m.Cmdy(nfs.DIR, kit.Select("src/sql/", m.Conf(c, kit.Keym("script"))), kit.Dict(nfs.DIR_DEEP, ice.TRUE)).RenameAppend(nfs.PATH, nfs.FILE)
+	m.PushAction(c.CatScript, c.RunScript)
 }
-func (c Client) Script(m *ice.Message, arg ...string) {
+func (c Client) CatScript(m *ice.Message, arg ...string) {
+	m.Cmdy(nfs.CAT, m.Option(nfs.FILE))
+}
+func (c Client) RunScript(m *ice.Message, arg ...string) {
 	if db, e := sqls.Open(MYSQL, c.sql_meta(m, m.Option(SESSION), m.Option(DATABASE))); m.Assert(e) {
 		defer db.Close()
 
@@ -85,9 +90,7 @@ func (c Client) List(m *ice.Message, arg ...string) {
 		m.Sort(SESSION)
 	} else if dsn := c.sql_meta(m, kit.Select(arg[0], mdb.RANDOMS, arg[0] == mdb.RANDOM), kit.Select("", arg, 1)); len(arg) < 2 {
 		_sql_query(m, dsn, "show databases").ToLowerAppend()
-		m.Action(c.ListScript)
 	} else if len(arg) < 3 {
-		m.Action(c.ListScript)
 		_sql_query(m, dsn, "show tables")
 		m.RenameAppend(m.Appendv(ice.MSG_APPEND)[0], TABLE).Table(func(index int, value map[string]string, head []string) {
 			msg := _sql_query(m.Spawn(), dsn, kit.Format("show fields from %s", value[TABLE])).ToLowerAppend()
