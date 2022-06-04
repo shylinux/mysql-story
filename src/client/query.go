@@ -3,6 +3,7 @@ package client
 import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/mdb"
+	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
 )
 
@@ -23,6 +24,9 @@ func (s Query) Create(m *ice.Message, arg ...string) {
 }
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
+	case tcp.PORT:
+		m.Cmdy(tcp.PORT)
+		// m.Cmdy(tcp.SERVER).Cut("port,status,time")
 	case SESSION:
 		s.List(m).Cut(SESSION)
 	case DATABASE:
