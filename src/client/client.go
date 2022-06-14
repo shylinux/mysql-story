@@ -27,7 +27,7 @@ type Client struct {
 
 	short  string `data:"session"`
 	field  string `data:"time,session,username,host,port,database"`
-	script string `data:""`
+	script string `data:"src/sql/"`
 
 	catScript  string `name:"catScript" help:"查看"`
 	runScript  string `name:"runScript session database file@key" help:"执行"`
@@ -60,7 +60,7 @@ func (c Client) Create(m *ice.Message, arg ...string) {
 	m.Cmdy(mdb.INSERT, ice.GetTypeKey(c), "", mdb.HASH, arg)
 }
 func (c Client) ListScript(m *ice.Message, arg ...string) {
-	m.Cmdy(nfs.DIR, kit.Select("src/sql/", m.Conf(c, kit.Keym("script"))), kit.Dict(nfs.DIR_DEEP, ice.TRUE)).RenameAppend(nfs.PATH, nfs.FILE)
+	m.Cmdy(nfs.DIR, m.Conf(c, kit.Keym(nfs.SCRIPT)), kit.Dict(nfs.DIR_DEEP, ice.TRUE, nfs.DIR_TYPE, nfs.CAT)).RenameAppend(nfs.PATH, nfs.FILE)
 	m.PushAction(c.CatScript, c.RunScript)
 }
 func (c Client) CatScript(m *ice.Message, arg ...string) {
