@@ -19,9 +19,6 @@ type Query struct {
 	list  string `name:"list session@key database@key table@key id auto listScript" help:"数据库"`
 }
 
-func (s Query) Create(m *ice.Message, arg ...string) {
-	s.Client.Create(m, arg...)
-}
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
@@ -47,12 +44,6 @@ func (s Query) Modify(m *ice.Message, arg ...string) {
 		kit.Format("update %s set %s='%s' where id=%s", m.Option(TABLE), arg[0], arg[1], m.Option(kit.MDB_ID)))
 	m.SetAppend()
 }
-func (s Query) Prev(m *ice.Message, arg ...string) {
-	mdb.PrevPageLimit(m.Message, arg[0], arg[1:]...)
-}
-func (s Query) Next(m *ice.Message, arg ...string) {
-	mdb.NextPage(m.Message, arg[0], arg[1:]...)
-}
 func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 1 || arg[0] == "" || len(arg) < 2 || arg[1] == "" || len(arg) < 3 || arg[2] == "" {
 		m.Cmdy(s.Client, arg)
@@ -77,6 +68,12 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	}
 	m.StatusTimeCountTotal(_query_total(m, s.sql_meta(m, arg[0], ""), where, arg...), "table", arg[2])
 	return m
+}
+func (s Query) Prev(m *ice.Message, arg ...string) {
+	mdb.PrevPageLimit(m.Message, arg[0], arg[1:]...)
+}
+func (s Query) Next(m *ice.Message, arg ...string) {
+	mdb.NextPage(m.Message, arg[0], arg[1:]...)
 }
 
 func init() { ice.CodeModCmd(Query{}) }

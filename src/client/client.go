@@ -29,12 +29,11 @@ type Client struct {
 	field  string `data:"time,session,username,host,port,database"`
 	script string `data:"src/sql/"`
 
+	create     string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
+	list       string `name:"list session database run listScript cmd:textarea" help:"客户端"`
+	listScript string `name:"listScript" help:"脚本"`
 	catScript  string `name:"catScript" help:"查看"`
 	runScript  string `name:"runScript session database file@key" help:"执行"`
-	listScript string `name:"listScript" help:"脚本"`
-
-	create string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
-	list   string `name:"list session database run:button listScript cmd:textarea" help:"客户端"`
 }
 
 func (c Client) sql_meta(m *ice.Message, h string, db string) string {
@@ -59,28 +58,6 @@ func (c Client) Inputs(m *ice.Message, arg ...string) {
 func (c Client) Create(m *ice.Message, arg ...string) {
 	m.Cmdy(mdb.INSERT, ice.GetTypeKey(c), "", mdb.HASH, arg)
 }
-func (c Client) ListScript(m *ice.Message, arg ...string) {
-	m.Cmdy(nfs.DIR, m.Conf(c, kit.Keym(nfs.SCRIPT)), kit.Dict(nfs.DIR_DEEP, ice.TRUE, nfs.DIR_TYPE, nfs.CAT)).RenameAppend(nfs.PATH, nfs.FILE)
-	m.PushAction(c.CatScript, c.RunScript)
-}
-func (c Client) CatScript(m *ice.Message, arg ...string) {
-	m.Cmdy(nfs.CAT, m.Option(nfs.FILE))
-}
-func (c Client) RunScript(m *ice.Message, arg ...string) {
-	if db, e := sqls.Open(MYSQL, c.sql_meta(m, m.Option(SESSION), m.Option(DATABASE))); m.Assert(e) {
-		defer db.Close()
-
-		for _, line := range strings.Split(m.Cmdx(nfs.CAT, kit.Path(m.Option(nfs.FILE))), ";") {
-			if strings.TrimSpace(line) == "" {
-				continue
-			}
-			res, err := db.Exec(line)
-			m.Push(ice.RES, kit.Format(res))
-			m.Push(ice.ERR, kit.Format(err))
-			m.Push(nfs.LINE, line)
-		}
-	}
-}
 func (c Client) List(m *ice.Message, arg ...string) {
 	if len(arg) < 1 || arg[0] == "" { // 连接列表
 		m.Fields(len(kit.Slice(arg, 0, 1)), m.Config(mdb.FIELD))
@@ -104,6 +81,28 @@ func (c Client) List(m *ice.Message, arg ...string) {
 		_sql_exec(m, dsn, arg[2])
 	}
 	m.StatusTimeCount()
+}
+func (c Client) ListScript(m *ice.Message, arg ...string) {
+	m.Cmdy(nfs.DIR, m.Conf(c, kit.Keym(nfs.SCRIPT)), kit.Dict(nfs.DIR_DEEP, ice.TRUE, nfs.DIR_TYPE, nfs.CAT)).RenameAppend(nfs.PATH, nfs.FILE)
+	m.PushAction(c.CatScript, c.RunScript)
+}
+func (c Client) CatScript(m *ice.Message, arg ...string) {
+	m.Cmdy(nfs.CAT, m.Option(nfs.FILE))
+}
+func (c Client) RunScript(m *ice.Message, arg ...string) {
+	if db, e := sqls.Open(MYSQL, c.sql_meta(m, m.Option(SESSION), m.Option(DATABASE))); m.Assert(e) {
+		defer db.Close()
+
+		for _, line := range strings.Split(m.Cmdx(nfs.CAT, kit.Path(m.Option(nfs.FILE))), ";") {
+			if strings.TrimSpace(line) == "" {
+				continue
+			}
+			res, err := db.Exec(line)
+			m.Push(ice.RES, kit.Format(res))
+			m.Push(ice.ERR, kit.Format(err))
+			m.Push(nfs.LINE, line)
+		}
+	}
 }
 
 func init() { ice.CodeModCmd(Client{}) }
