@@ -23,8 +23,8 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 		)},
 	},
 	Commands: map[string]*ice.Command{
-		ice.CTX_INIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {}},
-		ice.CTX_EXIT: {Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {}},
+		ice.CTX_INIT: {Hand: func(m *ice.Message, arg ...string) {}},
+		ice.CTX_EXIT: {Hand: func(m *ice.Message, arg ...string) {}},
 
 		ES: {Name: "es port=auto path=auto auto 启动:button 下载", Help: "搜索", Action: map[string]*ice.Action{
 			"download": {Name: "download", Help: "下载", Hand: func(m *ice.Message, arg ...string) {
@@ -37,16 +37,16 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 				name = strings.Join(strings.Split(name, "-")[:2], "-")
 				m.Cmdy(code.INSTALL, "start", name, "bin/elasticsearch")
 			}},
-		}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
+		}, Hand: func(m *ice.Message, arg ...string) {
 			name := path.Base(m.Conf(ES, kit.Keys(kit.MDB_META, runtime.GOOS)))
 			name = strings.Join(strings.Split(name, "-")[:2], "-")
 			m.Cmdy(code.INSTALL, name, arg)
 		}},
 
-		"GET": {Name: "GET 查看:button cmd:text=/", Help: "命令", Action: map[string]*ice.Action{}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
+		"GET": {Name: "GET 查看:button cmd:text=/", Help: "命令", Action: map[string]*ice.Action{}, Hand: func(m *ice.Message, arg ...string) {
 			if pod := m.Option("_pod"); pod != "" {
 				m.Option("_pod", "")
-				m.Cmdy(web.SPACE, pod, m.Prefix(cmd), arg)
+				m.Cmdy(web.SPACE, pod, m.PrefixKey(), arg)
 
 				if m.Result(0) != ice.ErrWarn || m.Result(1) != ice.ErrNotFound {
 					return
@@ -58,10 +58,10 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 			m.Echo(kit.Formats(kit.UnMarshal(m.Cmdx(web.SPIDE, ice.DEV, web.SPIDE_RAW,
 				web.SPIDE_GET, kit.MergeURL2(m.Conf(ES, "meta.address"), kit.Select("/", arg, 0))))))
 		}},
-		"CMD": {Name: "CMD 执行:button method:select=GET|PUT|POST|DELETE cmd:text=/ data:textarea", Help: "命令", Action: map[string]*ice.Action{}, Hand: func(m *ice.Message, c *ice.Context, cmd string, arg ...string) {
+		"CMD": {Name: "CMD 执行:button method:select=GET|PUT|POST|DELETE cmd:text=/ data:textarea", Help: "命令", Action: map[string]*ice.Action{}, Hand: func(m *ice.Message, arg ...string) {
 			if pod := m.Option("_pod"); pod != "" {
 				m.Option("_pod", "")
-				m.Cmdy(web.SPACE, pod, m.Prefix(cmd), arg)
+				m.Cmdy(web.SPACE, pod, m.PrefixKey(), arg)
 
 				if m.Result(0) != ice.ErrWarn || m.Result(1) != ice.ErrNotFound {
 					return
