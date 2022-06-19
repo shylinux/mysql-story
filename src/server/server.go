@@ -6,7 +6,6 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/cli"
-	"shylinux.com/x/icebergs/base/nfs"
 	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
 )
@@ -19,12 +18,12 @@ type server struct {
 }
 
 func (s server) Build(m *ice.Message, arg ...string) {
-	s.Code.Build(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), func(p string) {
+	s.Code.Build(m, "", func(p string) {
 		s.Code.System(m, p, "cmake", "./", "-DCMAKE_INSTALL_PREFIX=_install", "-DDEFAULT_COLLATION=utf8_general_ci", "-DDEFAULT_CHARSET=utf8", "-DEXTRA_CHARSETS=all")
 	})
 }
 func (s server) Start(m *ice.Message, arg ...string) {
-	s.Code.Start(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), "bin/mysqld", "--basedir=./", "--datadir=data", "--plugin-dir=lib/plugin",
+	s.Code.Start(m, "", "bin/mysqld", "--basedir=./", "--datadir=data", "--plugin-dir=lib/plugin",
 		"--log-error=mysqld.log", "--pid-file=mysqld.pid", "--socket=mysqld.socket", func(p string) []string {
 			s.Code.System(m.Spawn(), p, "scripts/mysql_install_db", "--datadir=data")
 			return []string{"--port", path.Base(p)}
@@ -36,7 +35,7 @@ func (s server) Start(m *ice.Message, arg ...string) {
 		"-e", kit.Format("set password for %s@%s = password('%s')", m.Option(aaa.USERNAME), tcp.LOCALHOST, m.Option(aaa.PASSWORD)))
 }
 func (s server) List(m *ice.Message, arg ...string) {
-	s.Code.List(m, s.Code.PathOther(m, m.Config(nfs.SOURCE)), arg...)
+	s.Code.List(m, "", arg...)
 }
 
 func init() { ice.CodeModCmd(server{}) }
