@@ -116,7 +116,7 @@ func _sql_open(m *ice.Message, dsn, stm string, cb func(*sqls.DB)) *ice.Message 
 }
 func _sql_exec(m *ice.Message, dsn string, stm string, arg ...interface{}) *ice.Message {
 	return _sql_open(m, dsn, stm, func(db *sqls.DB) {
-		m.Log_MODIFY("dsn", dsn, "stm", stm, "arg", arg)
+		m.Logs(mdb.MODIFY, "dsn", dsn, "stm", stm, "arg", arg)
 		m.Push(kit.MDB_TIME, m.Time())
 		if res, err := db.Exec(stm, arg...); err != nil {
 			m.Push("", kit.UnMarshal(kit.Format(err)))
