@@ -1,3 +1,5 @@
+export CGO_ENABLED=0
+
 binarys = bin/ice.bin
 
 all: def
