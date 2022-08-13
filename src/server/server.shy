@@ -1,6 +1,5 @@
 chapter "server"
 field "数据库" web.code.mysql.server
-# field "源代码" web.code.inner args `usr/install/mysql-5.6.33/ sql/main.cc 30`
 
 section "安装编译"
 spark shell `

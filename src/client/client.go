@@ -29,7 +29,7 @@ type Client struct {
 	field  string `data:"time,session,username,host,port,database"`
 	script string `data:"src/sql/"`
 
-	create     string `name:"create session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
+	connect    string `name:"connect session=biz username=root password=root host=localhost port=10000@key database=mysql" help:"连接"`
 	list       string `name:"list session database run listScript cmd:textarea" help:"客户端"`
 	listScript string `name:"listScript" help:"脚本"`
 	catScript  string `name:"catScript" help:"查看"`
@@ -55,7 +55,7 @@ func (c Client) Inputs(m *ice.Message, arg ...string) {
 		m.Cmdy(nfs.DIR, arg[1:]).ProcessAgain()
 	}
 }
-func (c Client) Create(m *ice.Message, arg ...string) {
+func (c Client) Connect(m *ice.Message, arg ...string) {
 	m.Cmdy(mdb.INSERT, ice.GetTypeKey(c), "", mdb.HASH, arg)
 }
 func (c Client) List(m *ice.Message, arg ...string) {
@@ -63,7 +63,7 @@ func (c Client) List(m *ice.Message, arg ...string) {
 		m.Fields(len(kit.Slice(arg, 0, 1)), m.Config(mdb.FIELD))
 		m.Cmdy(mdb.SELECT, ice.GetTypeKey(c), "", mdb.HASH, kit.Slice(arg, 0, 1))
 		m.PushAction(c.Hash.Remove)
-		m.Action(c.Create)
+		m.Action(c.Connect)
 		m.Sort(SESSION)
 	} else if dsn := c.sql_meta(m, kit.Select(arg[0], mdb.RANDOMS, arg[0] == mdb.RANDOM), kit.Select("", arg, 1)); len(arg) < 2 {
 		_sql_query(m, dsn, "show databases").ToLowerAppend()
