@@ -55,3 +55,10 @@ create table cluster (id int PRIMARY KEY AUTO_INCREMENT, name varchar(20))\;
 insert into cluster(name) value("jxzt")\;
 select * from cluster\;
 `
+
+section "处理错误"
+spark shell `
+[ERROR] Can't read from messagefile '/usr/share/mysql/english/errmsg.sys'
+
+cp share/english/errmsg.sys /usr/share/mysql/errmsg.sys
+`
