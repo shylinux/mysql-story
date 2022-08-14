@@ -7,7 +7,7 @@ yum install -y wget make cmake gcc-c++ bison.x86_64
 yum install -y libevent-devel.x86_64 ncurses-devel.x86_64 openssl-devel.x86_64
 
 wget http://mirrors.tencent.com/ubuntu/pool/universe/m/mysql-5.6/mysql-5.6_5.6.33.orig.tar.gz
-tar xvf mysql-5.6.33.tar.xz && cd mysql-5.6.33
+tar xvf mysql-5.6_5.6.33.orig.tar.gz && cd mysql-5.6.33
 
 cmake ./ -DCMAKE_INSTALL_PREFIX=./_install -DDEFAULT_COLLATION=utf8_general_ci -DDEFAULT_CHARSET=utf8 -DEXTRA_CHARSETS=all
 make -j8 && make install
