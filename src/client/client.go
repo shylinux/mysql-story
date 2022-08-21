@@ -34,7 +34,7 @@ type Client struct {
 
 func (s Client) meta(m *ice.Message, h string, db string) string {
 	m.OptionFields("username,password,host,port,database")
-	msg := m.Cmd(mdb.SELECT, m.PrefixKey(s), "", mdb.HASH, SESSION, h)
+	msg := m.Cmd(mdb.SELECT, ice.GetTypeKey(s), "", mdb.HASH, SESSION, h)
 	m.Assert(h != "" && msg.Append(tcp.PORT) != "")
 	return kit.Format("%s:%s@tcp(%s:%s)/%s?charset=utf8", msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD),
 		msg.Append(tcp.HOST), msg.Append(tcp.PORT), kit.Select(msg.Append(DATABASE), db))
@@ -51,11 +51,11 @@ func (s Client) Inputs(m *ice.Message, arg ...string) {
 	}
 }
 func (s Client) Connect(m *ice.Message, arg ...string) {
-	m.Cmd(mdb.INSERT, m.PrefixKey(s), "", mdb.HASH, arg)
+	m.Cmd(mdb.INSERT, ice.GetTypeKey(s), "", mdb.HASH, arg)
 }
 func (s Client) Xterm(m *ice.Message, arg ...string) {
 	m.OptionFields("username,password,host,port,database")
-	msg := m.Cmd(mdb.SELECT, m.PrefixKey(s), "", mdb.HASH, m.OptionSimple(SESSION))
+	msg := m.Cmd(mdb.SELECT, ice.GetTypeKey(s), "", mdb.HASH, m.OptionSimple(SESSION))
 	s.Code.Xterm(m, kit.Format("%s -h%s -P%s -u%s -p%s", kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), ice.BIN, MYSQL),
 		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD)), arg...)
 }
