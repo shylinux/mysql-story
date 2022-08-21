@@ -21,34 +21,30 @@ type Grant struct {
 	list   string `name:"list session auto" help:"权限"`
 }
 
-func (g Grant) Grants(m *ice.Message, arg ...string) {
-	_sql_exec(m, g.sql_meta(m, m.Option(SESSION), MYSQL), kit.Format("grant %s on %s to '%s'@'%s' identified by '%s'",
-		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST), m.Option(aaa.PASSWORD)))
-	m.SetAppend()
+func (s Grant) Grants(m *ice.Message, arg ...string) {
+	_sql_exec(m, s.meta(m, m.Option(SESSION), MYSQL), kit.Format("grant %s on %s to '%s'@'%s' identified by '%s'",
+		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST), m.Option(aaa.PASSWORD))).SetAppend()
 }
-func (g Grant) Revoke(m *ice.Message, arg ...string) {
-	_sql_exec(m, g.sql_meta(m, m.Option(SESSION), MYSQL), kit.Format("revoke %s on %s from '%s'@'%s'",
-		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
-	m.SetAppend()
+func (s Grant) Revoke(m *ice.Message, arg ...string) {
+	_sql_exec(m, s.meta(m, m.Option(SESSION), MYSQL), kit.Format("revoke %s on %s from '%s'@'%s'",
+		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST))).SetAppend()
 }
-func (g Grant) Drop(m *ice.Message, arg ...string) {
-	_sql_exec(m, g.sql_meta(m, m.Option(SESSION), MYSQL), kit.Format("drop user '%s'@'%s'", m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
-	m.SetAppend()
+func (s Grant) Drop(m *ice.Message, arg ...string) {
+	_sql_exec(m, s.meta(m, m.Option(SESSION), MYSQL), kit.Format("drop user '%s'@'%s'",
+		m.Option(aaa.USERNAME), m.Option(tcp.HOST))).SetAppend()
 }
-func (g Grant) List(m *ice.Message, arg ...string) {
+func (s Grant) Remove(m *ice.Message, arg ...string) {
+	m.Cmdy(s.Client, s.Remove, arg)
+}
+func (s Grant) List(m *ice.Message, arg ...string) {
 	if len(arg) < 1 || arg[0] == "" { // 连接列表
-		m.Action(g.Create)
-		m.Cmdy(g.Client)
+		m.Cmdy(s.Client)
 		return
 	}
 
-	m.Action(g.Grants)
-	_sql_query(m, g.sql_meta(m, arg[0], MYSQL), kit.Format("select User,Host from user")).ToLowerAppend().RenameAppend("user", aaa.USERNAME).Table(func(index int, value map[string]string, head []string) {
-		msg := _sql_query(m.Spawn(), g.sql_meta(m, arg[0], MYSQL), kit.Format("show grants for '%s'@'%s'", value[aaa.USERNAME], value[tcp.HOST]))
+	_sql_query(m, s.meta(m, arg[0], MYSQL), kit.Format("select User,Host from user")).ToLowerAppend().RenameAppend("user", aaa.USERNAME).Tables(func(value ice.Maps) {
+		msg := _sql_query(m.Spawn(), s.meta(m, arg[0], MYSQL), kit.Format("show grants for '%s'@'%s'", value[aaa.USERNAME], value[tcp.HOST]))
 		m.Push("stm", msg.Append(""))
-	})
-	m.Sort("username,host")
-	m.PushAction(g.Revoke, g.Drop)
-	m.StatusTimeCount()
+	}).Sort("username,host").PushAction(s.Revoke, s.Drop).Action(s.Grants)
 }
 func init() { ice.CodeModCmd(Grant{}) }

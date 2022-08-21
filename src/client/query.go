@@ -12,18 +12,16 @@ const (
 )
 
 type Query struct {
-	ice.Hash
 	Client
 	short string `data:"where"`
 	field string `data:"hash,time,where"`
-	list  string `name:"list session@key database@key table@key id auto listScript" help:"数据库"`
+	list  string `name:"list session@key database@key table@key id auto" help:"查询"`
 }
 
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
-		m.Cmdy(tcp.PORT)
-		// m.Cmdy(tcp.SERVER).Cut("port,status,time")
+		m.Cmdy(tcp.PORT).Cut("port,bin")
 	case SESSION:
 		s.List(m).Cut(SESSION)
 	case DATABASE:
@@ -32,17 +30,19 @@ func (s Query) Inputs(m *ice.Message, arg ...string) {
 		s.List(m, m.Option(SESSION), m.Option(DATABASE)).Cut(TABLE)
 	case WHERE:
 		s.Hash.Inputs(m, arg...)
-		m.Sort("where")
+		m.Sort(WHERE)
 	}
+}
+func (s Query) Remove(m *ice.Message, arg ...string) {
+	m.Cmdy(s.Client, s.Remove, arg)
 }
 func (s Query) Modify(m *ice.Message, arg ...string) {
 	if m.Option(TABLE) == "" {
 		m.Cmd(s.Client, s.Modify, arg)
 		return
 	}
-	_sql_exec(m, s.sql_meta(m, m.Option(SESSION), m.Option(DATABASE)),
-		kit.Format("update %s set %s='%s' where id=%s", m.Option(TABLE), arg[0], arg[1], m.Option(kit.MDB_ID)))
-	m.SetAppend()
+	_sql_exec(m, s.meta(m, m.Option(SESSION), m.Option(DATABASE)), kit.Format("update %s set %s='%s' where id=%s",
+		m.Option(TABLE), arg[0], arg[1], m.Option(mdb.ID))).SetAppend()
 }
 func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 1 || arg[0] == "" || len(arg) < 2 || arg[1] == "" || len(arg) < 3 || arg[2] == "" {
@@ -55,18 +55,17 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 		s.Hash.Create(m.Spawn(), WHERE, where)
 		where = WHERE + " " + where
 	}
-	if dsn := s.sql_meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 4 || arg[3] == "" { // 数据列表
+	mdb.OptionPage(m.Message, kit.Slice(arg, 4, 6)...)
+	if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 4 || arg[3] == "" { // 数据列表
 		_sql_query(m, dsn, kit.Format("select * from %s %s limit %s offset %s",
-			arg[2], where, kit.Select("10", arg, 4), kit.Select("0", arg, 5)))
-		m.Option("limit", kit.Select("", arg, 4))
-		m.Option("offend", kit.Select("", arg, 5))
-		m.Action("page", "where:text=`"+kit.Select("", arg, 6)+"`@key")
+			arg[2], where, kit.Select("10", m.Option(mdb.LIMIT)), kit.Select("0", m.Option(mdb.OFFEND))))
+		m.Action(mdb.PAGE, "where:text=`"+kit.Select("", arg, 6)+"`@key")
+		m.StatusTimeCountTotal(_query_total(m, s.meta(m, arg[0], ""), where, arg...), TABLE, arg[2])
 
 	} else { // 数据详情
-		m.OptionFields(mdb.DETAIL)
+		m.OptionFields(ice.FIELDS_DETAIL)
 		_sql_query(m, dsn, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
 	}
-	m.StatusTimeCountTotal(_query_total(m, s.sql_meta(m, arg[0], ""), where, arg...), "table", arg[2])
 	return m
 }
 func (s Query) Prev(m *ice.Message, arg ...string) {
@@ -81,7 +80,7 @@ func init() { ice.CodeModCmd(Query{}) }
 func _query_total(m *ice.Message, dsn string, where string, arg ...string) string {
 	if len(arg) > 2 {
 		msg := _sql_query(m.Spawn(), dsn, kit.Format("select count(*) as total from %s %s", kit.Keys(arg[1], arg[2]), where))
-		return msg.Append(kit.MDB_TOTAL)
+		return msg.Append(mdb.TOTAL)
 	}
 	return ""
 }

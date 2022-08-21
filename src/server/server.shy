@@ -1,10 +1,10 @@
 chapter "server"
-field "数据库" web.code.mysql.server
+field web.code.mysql.server
 
-section "安装编译"
+section "编译安装"
 spark shell `
 yum install -y wget make cmake gcc-c++ bison.x86_64
-yum install -y libevent-devel.x86_64 ncurses-devel.x86_64 openssl-devel.x86_64
+yum install -y libevent-devel.x86_64 openssl-devel.x86_64 ncurses-devel.x86_64
 
 wget http://mirrors.tencent.com/ubuntu/pool/universe/m/mysql-5.6/mysql-5.6_5.6.33.orig.tar.gz
 tar xvf mysql-5.6_5.6.33.orig.tar.gz && cd mysql-5.6.33
@@ -24,9 +24,8 @@ spark inner `
 [mysqld]
 basedir = ./
 datadir = ./data
-port = 3306
 socket = ./mysqld.socket
-sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES 
+port = 3306
 
 [mysqld_safe]
 log-error=./mysqld.log
@@ -38,27 +37,28 @@ spark shell `
 ./bin/mysqld_safe --user=$USER &
 `
 
-section "连接服务"
+section "设置密码"
 spark shell `
 ./bin/mysql -S ./data/mysqld.socket -u root
 `
-section "设置密码"
 spark mysql `
-set password for root@localhost = password('root')\;
+set password for root@localhost = password('root');
 `
 
 section "体验服务"
+spark shell `
+./bin/mysql -S ./data/mysqld.socket -u root -p
+`
 spark mysql `
-create database paas\;
-use paas\;
-create table cluster (id int PRIMARY KEY AUTO_INCREMENT, name varchar(20))\;
-insert into cluster(name) value("jxzt")\;
-select * from cluster\;
+create database paas;
+use paas;
+create table cluster (id int PRIMARY KEY AUTO_INCREMENT, name varchar(20));
+insert into cluster(name) value("jxzt");
+select * from cluster;
 `
 
 section "处理错误"
 spark shell `
-[ERROR] Can't read from messagefile '/usr/share/mysql/english/errmsg.sys'
-
+# [ERROR] Can't read from messagefile '/usr/share/mysql/english/errmsg.sys'
 cp share/english/errmsg.sys /usr/share/mysql/errmsg.sys
 `

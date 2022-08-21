@@ -1,7 +1,7 @@
 chapter "client"
-field "查询" web.code.mysql.query
-field "授权" web.code.mysql.grant
-field "连接" web.code.mysql.client
+field web.code.mysql.client
+field web.code.mysql.grant
+field web.code.mysql.query
 
 section "数据库"
 field "创建库" web.code.mysql.client args.0 'biz' args.1 '' args.2 `

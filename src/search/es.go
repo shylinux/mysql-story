@@ -14,7 +14,7 @@ import (
 const ES = "es"
 
 var Index = &ice.Context{Name: ES, Help: "搜索",
-	Configs: map[string]*ice.Config{
+	Configs: ice.Configs{
 		ES: {Name: ES, Help: "搜索", Value: kit.Data(
 			"address", "http://localhost:9200",
 			"windows", "https://elasticsearch.thans.cn/downloads/elasticsearch/elasticsearch-7.3.2-windows-x86_64.zip",
@@ -22,11 +22,11 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 			"linux", "https://elasticsearch.thans.cn/downloads/elasticsearch/elasticsearch-7.3.2-linux-x86_64.tar.gz",
 		)},
 	},
-	Commands: map[string]*ice.Command{
+	Commands: ice.Commands{
 		ice.CTX_INIT: {Hand: func(m *ice.Message, arg ...string) {}},
 		ice.CTX_EXIT: {Hand: func(m *ice.Message, arg ...string) {}},
 
-		ES: {Name: "es port=auto path=auto auto 启动:button 下载", Help: "搜索", Actions: map[string]*ice.Action{
+		ES: {Name: "es port=auto path=auto auto 启动:button 下载", Help: "搜索", Actions: ice.Actions{
 			"download": {Name: "download", Help: "下载", Hand: func(m *ice.Message, arg ...string) {
 				m.Cmdy(code.INSTALL, "download", m.Conf(ES, kit.Keys(kit.MDB_META, runtime.GOOS)))
 			}},
@@ -43,7 +43,7 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 			m.Cmdy(code.INSTALL, name, arg)
 		}},
 
-		"GET": {Name: "GET 查看:button cmd:text=/", Help: "命令", Actions: map[string]*ice.Action{}, Hand: func(m *ice.Message, arg ...string) {
+		"GET": {Name: "GET 查看:button cmd:text=/", Help: "命令", Hand: func(m *ice.Message, arg ...string) {
 			if pod := m.Option("_pod"); pod != "" {
 				m.Option("_pod", "")
 				m.Cmdy(web.SPACE, pod, m.PrefixKey(), arg)
@@ -58,7 +58,7 @@ var Index = &ice.Context{Name: ES, Help: "搜索",
 			m.Echo(kit.Formats(kit.UnMarshal(m.Cmdx(web.SPIDE, ice.DEV, web.SPIDE_RAW,
 				web.SPIDE_GET, kit.MergeURL2(m.Conf(ES, "meta.address"), kit.Select("/", arg, 0))))))
 		}},
-		"CMD": {Name: "CMD 执行:button method:select=GET|PUT|POST|DELETE cmd:text=/ data:textarea", Help: "命令", Actions: map[string]*ice.Action{}, Hand: func(m *ice.Message, arg ...string) {
+		"CMD": {Name: "CMD 执行:button method:select=GET|PUT|POST|DELETE cmd:text=/ data:textarea", Help: "命令", Hand: func(m *ice.Message, arg ...string) {
 			if pod := m.Option("_pod"); pod != "" {
 				m.Option("_pod", "")
 				m.Cmdy(web.SPACE, pod, m.PrefixKey(), arg)
