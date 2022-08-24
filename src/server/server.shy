@@ -2,7 +2,7 @@ chapter "server"
 field web.code.mysql.server
 
 section "编译安装"
-spark shell `
+shell `
 yum install -y wget make cmake gcc-c++ bison.x86_64
 yum install -y libevent-devel.x86_64 openssl-devel.x86_64 ncurses-devel.x86_64
 
@@ -14,7 +14,7 @@ make -j8 && make install
 `
 
 section "配置服务"
-spark shell `
+shell `
 cd ./_install
 ./scripts/mysql_install_db --datadir=./data
 `
@@ -33,12 +33,12 @@ pid-file=./mysqld.pid
 `
 
 section "启动服务"
-spark shell `
+shell `
 ./bin/mysqld_safe --user=$USER &
 `
 
 section "设置密码"
-spark shell `
+shell `
 ./bin/mysql -S ./data/mysqld.socket -u root
 `
 spark mysql `
@@ -46,10 +46,10 @@ set password for root@localhost = password('root');
 `
 
 section "体验服务"
-spark shell `
+shell `
 ./bin/mysql -S ./data/mysqld.socket -u root -p
 `
-spark mysql `
+shell mysql `
 create database paas;
 use paas;
 create table cluster (id int PRIMARY KEY AUTO_INCREMENT, name varchar(20));
@@ -58,7 +58,7 @@ select * from cluster;
 `
 
 section "处理错误"
-spark shell `
+shell `
 # [ERROR] Can't read from messagefile '/usr/share/mysql/english/errmsg.sys'
 cp share/english/errmsg.sys /usr/share/mysql/errmsg.sys
 `

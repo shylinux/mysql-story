@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+type search struct {
+	ice.Code
+}
+
 const ES = "es"
 
 var Index = &ice.Context{Name: ES, Help: "搜索",

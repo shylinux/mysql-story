@@ -7,13 +7,13 @@ refer `
 
 section
 
-spark shell `
+shell `
 wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-common-static-20.9.3.45-2.x86_64.rpm
 wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-server-20.9.3.45-2.noarch.rpm
 wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-client-20.9.3.45-2.noarch.rpm
 `
 
-spark shell `
+shell `
 rpm -ivh clickhouse-common-static-20.9.3.45-2.x86_64.rpm
 rpm -ivh clickhouse-server-20.9.3.45-2.noarch.rpm
 rpm -ivh clickhouse-client-20.9.3.45-2.noarch.rpm
