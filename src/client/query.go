@@ -21,16 +21,16 @@ type Query struct {
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case tcp.PORT:
-		m.Cmdy(tcp.PORT).Cut("port,bin")
+		m.Cmdy(tcp.PORT).Cut(arg[0], ice.BIN)
 	case SESSION:
-		s.List(m).Cut(SESSION)
+		s.List(m).Cut(arg[0])
 	case DATABASE:
-		s.List(m, m.Option(SESSION)).Cut(DATABASE)
+		s.List(m, m.Option(SESSION)).Cut(arg[0])
 	case TABLE:
-		s.List(m, m.Option(SESSION), m.Option(DATABASE)).Cut(TABLE)
+		s.List(m, m.Option(SESSION), m.Option(DATABASE)).Cut(arg[0])
 	case WHERE:
+		defer m.Sort(WHERE)
 		s.Hash.Inputs(m, arg...)
-		m.Sort(WHERE)
 	}
 }
 func (s Query) Remove(m *ice.Message, arg ...string) {

@@ -7,14 +7,7 @@ refer `
 入门 https://www.cnblogs.com/sunsky303/p/9438737.html
 `
 
-field "服务管理" web.code.es.es
-
-section 下载
-refer `
-windows https://elasticsearch.thans.cn/downloads/elasticsearch/elasticsearch-7.3.2-windows-x86_64.zip
-darwin https://elasticsearch.thans.cn/downloads/elasticsearch/elasticsearch-7.3.2-darwin-x86_64.tar.gz
-linux https://elasticsearch.thans.cn/downloads/elasticsearch/elasticsearch-7.3.2-linux-x86_64.tar.gz
-`
+field "服务管理" web.code.es.server
 
 section 启动
 spark shell `

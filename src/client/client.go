@@ -61,7 +61,7 @@ func (s Client) Xterm(m *ice.Message, arg ...string) {
 }
 func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 1 || arg[0] == "" { // 会话列表
-		s.Hash.List(m, arg...).Sort(SESSION).Action(s.Connect).PushAction(s.Xterm, s.Remove)
+		s.Hash.List(m, arg...).Sort(SESSION).PushAction(s.Xterm, s.Remove).Action(s.Connect)
 
 	} else if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 2 { // 数据库列表
 		_sql_query(m, dsn, "show databases").ToLowerAppend()
@@ -89,9 +89,7 @@ func (s Client) CatScript(m *ice.Message, arg ...string) {
 	m.Cmdy(nfs.CAT, m.Option(nfs.FILE))
 }
 func (s Client) RunScript(m *ice.Message, arg ...string) {
-	if db, e := _sql.Open(MYSQL, s.meta(m, m.Option(SESSION), m.Option(DATABASE))); m.Assert(e) {
-		defer db.Close()
-
+	_sql_open(m, s.meta(m, m.Option(SESSION), m.Option(DATABASE)), func(db *_sql.DB) {
 		for _, line := range strings.Split(m.Cmdx(nfs.CAT, kit.Path(m.Option(nfs.FILE))), ";") {
 			if strings.TrimSpace(line) == "" {
 				continue
@@ -101,12 +99,12 @@ func (s Client) RunScript(m *ice.Message, arg ...string) {
 			m.Push(ice.RES, kit.Format(res))
 			m.Push(nfs.LINE, line)
 		}
-	}
+	})
 }
 
 func init() { ice.CodeModCmd(Client{}) }
 
-func _sql_open(m *ice.Message, dsn, stm string, cb func(*_sql.DB)) *ice.Message {
+func _sql_open(m *ice.Message, dsn string, cb func(*_sql.DB)) *ice.Message {
 	if db, e := _sql.Open(MYSQL, dsn); m.Assert(e) {
 		defer db.Close()
 		cb(db)
@@ -114,7 +112,7 @@ func _sql_open(m *ice.Message, dsn, stm string, cb func(*_sql.DB)) *ice.Message 
 	return m
 }
 func _sql_exec(m *ice.Message, dsn string, stm string, arg ...ice.Any) *ice.Message {
-	return _sql_open(m, dsn, stm, func(db *_sql.DB) {
+	return _sql_open(m, dsn, func(db *_sql.DB) {
 		m.Logs(mdb.MODIFY, "dsn", dsn, "stm", stm, "arg", arg)
 		m.Push(mdb.TIME, m.Time())
 		if res, err := db.Exec(stm, arg...); err != nil {
@@ -130,7 +128,7 @@ func _sql_exec(m *ice.Message, dsn string, stm string, arg ...ice.Any) *ice.Mess
 	})
 }
 func _sql_query(m *ice.Message, dsn string, stm string, arg ...ice.Any) *ice.Message {
-	return _sql_open(m, dsn, stm, func(db *_sql.DB) {
+	return _sql_open(m, dsn, func(db *_sql.DB) {
 		m.Logs(mdb.SELECT, "dsn", dsn, "stm", stm, "arg", arg)
 		if rows, err := db.Query(stm, arg...); m.Assert(err) {
 			head, err := rows.Columns()
