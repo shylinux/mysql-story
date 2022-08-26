@@ -13,8 +13,8 @@ type client struct {
 	short string `data:"sess"`
 	field string `data:"time,sess,host,port"`
 
-	create string `name:"create sess=biz host=localhost port=10005" help:"创建"`
-	list   string `name:"list sess@key method=GET,PUT,POST,DELETE path run create text"`
+	create string `name:"create sess=biz host=localhost port=10004" help:"创建"`
+	list   string `name:"list sess@key method=GET,PUT,POST,DELETE path run create text" help:"搜索引擎"`
 }
 
 func (s client) Inputs(m *ice.Message, arg ...string) {

@@ -22,6 +22,8 @@ curl http://localhost:9200
 `
 
 chapter "client"
+field web.code.elasticsearch.client
+
 field "创建索引" web.code.elasticsearch.client args `biz PUT /index_test` args.-2 `
 {
 	"acknowledged": true
