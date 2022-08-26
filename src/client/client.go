@@ -58,12 +58,6 @@ func (s Client) Connect(m *ice.Message, arg ...string) {
 func (s Client) Remove(m *ice.Message, arg ...string) {
 	m.Cmd(mdb.DELETE, ice.GetTypeKey(s), "", mdb.HASH, m.OptionSimple(SESSION))
 }
-func (s Client) Xterm(m *ice.Message, arg ...string) {
-	m.OptionFields("username,password,host,port,database")
-	msg := m.Cmd(mdb.SELECT, ice.GetTypeKey(s), "", mdb.HASH, m.OptionSimple(SESSION))
-	s.Code.Xterm(m, kit.Format("%s -h%s -P%s -u%s -p%s", kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), ice.BIN, MYSQL),
-		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD)), arg...)
-}
 func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 1 || arg[0] == "" { // 会话列表
 		s.Hash.List(m, arg...).Sort(SESSION).PushAction(s.Xterm, s.Remove).Action(s.Connect)
@@ -85,6 +79,12 @@ func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 		_sql_exec(m, dsn, arg[2])
 	}
 	return m
+}
+func (s Client) Xterm(m *ice.Message, arg ...string) {
+	m.OptionFields("username,password,host,port")
+	msg := s.List(m.Spawn(), m.Option(SESSION))
+	s.Code.Xterm(m, kit.Format("%s -h%s -P%s -u%s -p%s", kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), "bin/mysql"),
+		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD)), arg...)
 }
 func (s Client) ListScript(m *ice.Message, arg ...string) {
 	m.Cmdy(nfs.DIR, ice.SRC, kit.Dict(nfs.DIR_DEEP, ice.TRUE, nfs.DIR_REG, ".*.sql")).RenameAppend(nfs.PATH, nfs.FILE)

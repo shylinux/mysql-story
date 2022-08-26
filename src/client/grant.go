@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	TARGET = "target"
 	METHOD = "method"
+	TARGET = "target"
 )
 
 type Grant struct {
