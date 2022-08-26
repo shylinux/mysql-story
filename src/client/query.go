@@ -2,6 +2,7 @@ package client
 
 import (
 	"shylinux.com/x/ice"
+	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/mdb"
 	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
@@ -15,19 +16,19 @@ type Query struct {
 	Client
 	short string `data:"where"`
 	field string `data:"hash,time,where"`
-	list  string `name:"list session@key database@key table@key id auto" help:"查询"`
+	list  string `name:"list sess@key database@key table@key id auto" help:"查询"`
 }
 
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
-	case SESSION:
+	case aaa.SESS:
 		s.List(m).Cut(arg[0])
 	case tcp.PORT:
 		m.Cmdy(tcp.SERVER).Cut("port,status,time")
 	case DATABASE:
-		s.List(m, m.Option(SESSION)).Cut(arg[0])
+		s.List(m, m.Option(aaa.SESS)).Cut(arg[0])
 	case TABLE:
-		s.List(m, m.Option(SESSION), m.Option(DATABASE)).Cut(arg[0])
+		s.List(m, m.Option(aaa.SESS), m.Option(DATABASE)).Cut(arg[0])
 	case WHERE:
 		defer m.Sort(WHERE)
 		s.Hash.Inputs(m, arg...)
@@ -38,8 +39,8 @@ func (s Query) Modify(m *ice.Message, arg ...string) {
 		m.Cmd(s.Client, s.Modify, arg)
 		return
 	}
-	_sql_exec(m, s.meta(m, m.Option(SESSION), m.Option(DATABASE)), kit.Format("update %s set %s='%s' where id=%s",
-		m.Option(TABLE), arg[0], arg[1], m.Option(mdb.ID))).SetAppend()
+	_sql_exec(m.Spawn(), s.meta(m, m.Option(aaa.SESS), m.Option(DATABASE)), kit.Format("update %s set %s='%s' where id=%s",
+		m.Option(TABLE), arg[0], arg[1], m.Option(mdb.ID)))
 }
 func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 1 || arg[0] == "" || len(arg) < 2 || arg[1] == "" || len(arg) < 3 || arg[2] == "" {
