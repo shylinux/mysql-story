@@ -80,7 +80,7 @@ func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 }
 func (s Client) Xterm(m *ice.Message, arg ...string) {
 	m.OptionFields("username,password,host,port")
-	msg := s.List(m.Spawn(), m.Option(aaa.SESS))
+	msg := m.Cmd(s, m.Option(aaa.SESS))
 	s.Code.Xterm(m, kit.Format("%s -h%s -P%s -u%s -p%s", kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), "bin/mysql"),
 		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD)), arg...)
 }
