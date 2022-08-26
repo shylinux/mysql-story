@@ -13,16 +13,15 @@ func (h sql) Init(m *ice.Message, arg ...string) {
 		code.PREFIX, kit.Dict("<!-- ", code.COMMENT), code.PREPARE, kit.Dict(
 			code.KEYWORD, kit.Simple(
 				"create", "table", "if", "not", "exists",
-				"index",
-				"on",
+				"index", "on",
 			),
 			code.CONSTANT, kit.Simple(
 				"InnoDB", "utf8mb4", "null",
 			),
 			code.DATATYPE, kit.Simple(
 				"unsigned",
-				"bigint",
 				"tinyint",
+				"bigint",
 				"varchar",
 				"datetime",
 			),

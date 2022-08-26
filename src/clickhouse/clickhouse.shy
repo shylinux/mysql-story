@@ -1,21 +1,21 @@
-chapter "clickhouse"
+title "clickhouse"
 refer `
 官网 https://clickhouse.tech/
 文档 https://clickhouse.tech/docs/en/
 源码 https://github.com/ClickHouse/ClickHouse
 `
 
-section
+chapter "server"
+field web.code.clickhouse.server
 
-shell `
-wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-common-static-20.9.3.45-2.x86_64.rpm
-wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-server-20.9.3.45-2.noarch.rpm
-wget https://repo.yandex.ru/clickhouse/rpm/stable/x86_64/clickhouse-client-20.9.3.45-2.noarch.rpm
+section "下载安装"
+shell ` 
+wget https://packages.clickhouse.com/tgz/stable/clickhouse-common-static-21.1.9.41.tgz
+tar xvf clickhouse-common-static-21.1.9.41.tgz && cd clickhouse-common-static-21.1.9.41
 `
 
-shell `
-rpm -ivh clickhouse-common-static-20.9.3.45-2.x86_64.rpm
-rpm -ivh clickhouse-server-20.9.3.45-2.noarch.rpm
-rpm -ivh clickhouse-client-20.9.3.45-2.noarch.rpm
+section "启动服务"
+shell ` 
+./usr/bin/clickhouse server
+./usr/bin/clickhouse client
 `
-

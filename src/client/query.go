@@ -20,10 +20,10 @@ type Query struct {
 
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
-	case tcp.PORT:
-		m.Cmdy(tcp.PORT).Cut(arg[0], ice.BIN)
 	case SESSION:
 		s.List(m).Cut(arg[0])
+	case tcp.PORT:
+		m.Cmdy(tcp.SERVER).Cut("port,status,time")
 	case DATABASE:
 		s.List(m, m.Option(SESSION)).Cut(arg[0])
 	case TABLE:
@@ -32,9 +32,6 @@ func (s Query) Inputs(m *ice.Message, arg ...string) {
 		defer m.Sort(WHERE)
 		s.Hash.Inputs(m, arg...)
 	}
-}
-func (s Query) Remove(m *ice.Message, arg ...string) {
-	m.Cmdy(s.Client, s.Remove, arg)
 }
 func (s Query) Modify(m *ice.Message, arg ...string) {
 	if m.Option(TABLE) == "" {

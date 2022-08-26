@@ -43,15 +43,20 @@ func (s Client) meta(m *ice.Message, h string, db string) string {
 func (s Client) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case SESSION:
-		s.List(m).Cut(SESSION)
-	case DATABASE:
-		s.List(m, m.Option(SESSION)).Cut(DATABASE)
+		s.List(m).Cut(arg[0])
+	case aaa.USERNAME:
+		m.Cmdy(aaa.USER).Cut("username,usernick")
 	case tcp.PORT:
 		m.Cmdy(tcp.SERVER).Cut("port,status,time")
+	case DATABASE:
+		s.List(m, m.Option(SESSION)).Cut(arg[0])
 	}
 }
 func (s Client) Connect(m *ice.Message, arg ...string) {
 	m.Cmd(mdb.INSERT, ice.GetTypeKey(s), "", mdb.HASH, arg)
+}
+func (s Client) Remove(m *ice.Message, arg ...string) {
+	m.Cmd(mdb.DELETE, ice.GetTypeKey(s), "", mdb.HASH, m.OptionSimple(SESSION))
 }
 func (s Client) Xterm(m *ice.Message, arg ...string) {
 	m.OptionFields("username,password,host,port,database")

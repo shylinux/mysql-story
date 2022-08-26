@@ -31,7 +31,7 @@ func (s server) Start(m *ice.Message, arg ...string) {
 
 	// 设置密码
 	m.Sleep3s()
-	s.Code.System(m, m.Option(cli.CMD_DIR), "bin/mysql", "-S", "data/mysqld.socket", "-u", m.Option(aaa.USERNAME),
+	s.Code.System(m, m.Option(cli.CMD_DIR), "bin/mysql", "-S", "./data/mysqld.socket", "-u", m.Option(aaa.USERNAME),
 		"-e", kit.Format("set password for %s@%s = password('%s')", m.Option(aaa.USERNAME), tcp.LOCALHOST, m.Option(aaa.PASSWORD)))
 
 }

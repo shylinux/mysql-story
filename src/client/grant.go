@@ -14,7 +14,6 @@ const (
 
 type Grant struct {
 	Client
-
 	grants string `name:"grants session method=all target=*.* host=% username password" help:"授权"`
 	revoke string `name:"revoke session method=all target=*.* host username" help:"撤销"`
 	drop   string `name:"drop" help:"删除"`
@@ -22,19 +21,16 @@ type Grant struct {
 }
 
 func (s Grant) Grants(m *ice.Message, arg ...string) {
-	_sql_exec(m, s.meta(m, m.Option(SESSION), MYSQL), kit.Format("grant %s on %s to '%s'@'%s' identified by '%s'",
-		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST), m.Option(aaa.PASSWORD))).SetAppend()
+	_sql_exec(m.Spawn(), s.meta(m, m.Option(SESSION), MYSQL), kit.Format("grant %s on %s to '%s'@'%s' identified by '%s'",
+		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST), m.Option(aaa.PASSWORD)))
 }
 func (s Grant) Revoke(m *ice.Message, arg ...string) {
-	_sql_exec(m, s.meta(m, m.Option(SESSION), MYSQL), kit.Format("revoke %s on %s from '%s'@'%s'",
-		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST))).SetAppend()
+	_sql_exec(m.Spawn(), s.meta(m, m.Option(SESSION), MYSQL), kit.Format("revoke %s on %s from '%s'@'%s'",
+		m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
 }
 func (s Grant) Drop(m *ice.Message, arg ...string) {
-	_sql_exec(m, s.meta(m, m.Option(SESSION), MYSQL), kit.Format("drop user '%s'@'%s'",
-		m.Option(aaa.USERNAME), m.Option(tcp.HOST))).SetAppend()
-}
-func (s Grant) Remove(m *ice.Message, arg ...string) {
-	m.Cmdy(s.Client, s.Remove, arg)
+	_sql_exec(m.Spawn(), s.meta(m, m.Option(SESSION), MYSQL), kit.Format("drop user '%s'@'%s'",
+		m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
 }
 func (s Grant) List(m *ice.Message, arg ...string) {
 	if len(arg) < 1 || arg[0] == "" { // 连接列表
