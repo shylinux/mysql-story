@@ -81,8 +81,8 @@ func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 func (s Client) Xterm(m *ice.Message, arg ...string) {
 	m.OptionFields("username,password,host,port")
 	msg := m.Cmd(s, m.Option(aaa.SESS))
-	s.Code.Xterm(m, kit.Format("%s -h%s -P%s -u%s -p%s", kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), "bin/mysql"),
-		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD)), arg...)
+	s.Code.Xterm(m, []string{mdb.TYPE, kit.Format("%s -h%s -P%s -u%s -p%s", kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), "bin/mysql"),
+		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD))}, arg...)
 }
 func (s Client) ListScript(m *ice.Message, arg ...string) {
 	m.Cmdy(nfs.DIR, ice.SRC, kit.Dict(nfs.DIR_DEEP, ice.TRUE, nfs.DIR_REG, ".*.sql")).RenameAppend(nfs.PATH, nfs.FILE)
