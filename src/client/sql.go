@@ -9,7 +9,7 @@ import (
 type sql struct{ ice.Lang }
 
 func (h sql) Init(m *ice.Message, arg ...string) {
-	h.Lang.Init(m, code.SPLIT, kit.Dict(code.SPACE, "\t ", code.OPERATE, ""),
+	h.Lang.Init(m, code.SPLIT, kit.Dict(code.SPACE, "\t ", code.OPERATOR, ""),
 		code.PREFIX, kit.Dict("<!-- ", code.COMMENT), code.PREPARE, kit.Dict(
 			code.KEYWORD, kit.Simple(
 				"create", "table", "if", "not", "exists",
