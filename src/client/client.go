@@ -69,7 +69,7 @@ func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 			m.Push(mdb.FIELD, strings.Join(msg.Appendv(mdb.FIELD), ice.FS))
 		}).Action(s.ListScript)
 
-	} else if cmd := strings.ToLower(strings.TrimSpace(arg[2])); strings.HasPrefix(cmd, ice.SHOW) { // 查询定义
+	} else if cmd := strings.ToLower(strings.TrimSpace(arg[2])); strings.HasPrefix(cmd, "show") { // 查询定义
 		_sql_query(m, dsn, arg[2])
 	} else if strings.HasPrefix(cmd, mdb.SELECT) { // 查询数据
 		_sql_query(m, dsn, arg[2])
