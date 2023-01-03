@@ -4,7 +4,6 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/mdb"
-	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
 )
 
@@ -21,17 +20,13 @@ type Query struct {
 
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
-	case aaa.SESS:
-		s.List(m).Cut(arg[0])
-	case tcp.PORT:
-		m.Cmdy(tcp.SERVER).Cut("port,status,time")
-	case DATABASE:
-		s.List(m, m.Option(aaa.SESS)).Cut(arg[0])
 	case TABLE:
 		s.List(m, m.Option(aaa.SESS), m.Option(DATABASE)).Cut(arg[0])
 	case WHERE:
 		defer m.Sort(WHERE)
 		s.Hash.Inputs(m, arg...)
+	default:
+		s.Client.Inputs(m, arg...)
 	}
 }
 func (s Query) Modify(m *ice.Message, arg ...string) {
@@ -43,24 +38,22 @@ func (s Query) Modify(m *ice.Message, arg ...string) {
 		m.Option(TABLE), arg[0], arg[1], m.Option(mdb.ID)))
 }
 func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
-	if len(arg) < 1 || arg[0] == "" || len(arg) < 2 || arg[1] == "" || len(arg) < 3 || arg[2] == "" {
+	if len(arg) < 3 || arg[0] == "" || arg[1] == "" || arg[2] == "" {
 		m.Cmdy(s.Client, arg)
 		return m
 	}
-
 	where := kit.Select("", arg, 6)
 	if where != "" {
 		s.Hash.Create(m.Spawn(), WHERE, where)
-		where = WHERE + " " + where
+		where = WHERE + ice.SP + where
 	}
 	mdb.OptionPage(m.Message, kit.Slice(arg, 4, 6)...)
-	if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 4 || arg[3] == "" { // 数据列表
+	if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 4 || arg[3] == "" {
 		_sql_query(m, dsn, kit.Format("select * from %s %s limit %s offset %s",
 			arg[2], where, kit.Select("10", m.Option(mdb.LIMIT)), kit.Select("0", m.Option(mdb.OFFEND))))
 		m.Action(mdb.PAGE, "where:text=`"+kit.Select("", arg, 6)+"`@key")
 		m.StatusTimeCountTotal(_query_total(m, s.meta(m, arg[0], ""), where, arg...), TABLE, arg[2])
-
-	} else { // 数据详情
+	} else {
 		m.OptionFields(ice.FIELDS_DETAIL)
 		_sql_query(m, dsn, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
 	}

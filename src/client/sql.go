@@ -6,6 +6,9 @@ import (
 	kit "shylinux.com/x/toolkits"
 )
 
+const (
+	SQL = "sql"
+)
 type sql struct{ ice.Lang }
 
 func (h sql) Init(m *ice.Message, arg ...string) {
