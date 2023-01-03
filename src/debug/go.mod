@@ -6,8 +6,8 @@ require shylinux.com/x/go-sql-mysql v0.0.1
 
 require (
 	shylinux.com/x/ice v1.0.8
-	shylinux.com/x/icebergs v1.3.6
-	shylinux.com/x/toolkits v0.6.8
+	shylinux.com/x/icebergs v1.5.2
+	shylinux.com/x/toolkits v0.7.3
 )
 
 replace (
