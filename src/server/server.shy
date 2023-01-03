@@ -22,7 +22,7 @@ cd ./_install
 `
 
 spark `修改my.cnf，内容如下`
-shell inner `
+spark inner `
 [mysqld]
 basedir = ./
 datadir = ./data
@@ -43,7 +43,7 @@ section "设置密码"
 shell `
 ./bin/mysql -S ./data/mysqld.socket -u root
 `
-shell mysql `
+spark mysql `
 set password for root@localhost = password('root');
 `
 
@@ -51,7 +51,7 @@ section "体验服务"
 shell `
 ./bin/mysql -S ./data/mysqld.socket -u root -p
 `
-shell mysql `
+spark mysql `
 create database paas;
 use paas;
 create table cluster (id int PRIMARY KEY AUTO_INCREMENT, name varchar(20));

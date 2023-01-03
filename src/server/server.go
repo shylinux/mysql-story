@@ -28,7 +28,6 @@ func (s server) Start(m *ice.Message, arg ...string) {
 			s.Code.System(m.Spawn(), p, "scripts/mysql_install_db", "--datadir=data")
 			return []string{"--port", path.Base(p)}
 		})
-
 	// 设置密码
 	m.Sleep3s()
 	s.Code.System(m, m.Option(cli.CMD_DIR), "bin/mysql", "-S", "./data/mysqld.socket", "-u", m.Option(aaa.USERNAME),

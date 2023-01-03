@@ -67,10 +67,10 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	return m
 }
 func (s Query) Prev(m *ice.Message, arg ...string) {
-	mdb.PrevPageLimit(m.Message, arg[0], arg[1:]...)
+	mdb.NextPageLimit(m.Message, arg[0], arg[1:]...)
 }
 func (s Query) Next(m *ice.Message, arg ...string) {
-	mdb.NextPage(m.Message, arg[0], arg[1:]...)
+	mdb.PrevPage(m.Message, arg[0], arg[1:]...)
 }
 
 func init() { ice.CodeModCmd(Query{}) }
