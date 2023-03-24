@@ -37,7 +37,7 @@ func (s Grant) List(m *ice.Message, arg ...string) {
 		m.Cmdy(s.Client)
 		return
 	}
-	_sql_query(m, s.meta(m, arg[0], MYSQL), kit.Format("select User,Host from user")).ToLowerAppend().RenameAppend(aaa.USER, aaa.USERNAME).Tables(func(value ice.Maps) {
+	_sql_query(m, s.meta(m, arg[0], MYSQL), kit.Format("select User,Host from user")).ToLowerAppend().RenameAppend(aaa.USER, aaa.USERNAME).Table(func(value ice.Maps) {
 		msg := _sql_query(m.Spawn(), s.meta(m, arg[0], MYSQL), kit.Format("show grants for '%s'@'%s'", value[aaa.USERNAME], value[tcp.HOST]))
 		m.Push("stm", msg.Append(""))
 	}).Sort("username,host").PushAction(s.Revoke, s.Drop).Action(s.Grants)

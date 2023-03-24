@@ -62,7 +62,7 @@ func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 	} else if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 2 {
 		_sql_query(m, dsn, "show databases").ToLowerAppend()
 	} else if len(arg) < 3 || arg[2] == "" {
-		_sql_query(m, dsn, "show tables").RenameAppend(kit.Select("", m.Appendv(ice.MSG_APPEND), 0), TABLE).Tables(func(value ice.Maps) {
+		_sql_query(m, dsn, "show tables").RenameAppend(kit.Select("", m.Appendv(ice.MSG_APPEND), 0), TABLE).Table(func(value ice.Maps) {
 			msg := _sql_query(m.Spawn(), dsn, kit.Format("show fields from %s", value[TABLE])).ToLowerAppend()
 			m.Push(mdb.FIELD, strings.Join(msg.Appendv(mdb.FIELD), ice.FS))
 		}).Action(s.ListScript)
