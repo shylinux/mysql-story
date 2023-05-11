@@ -13,7 +13,7 @@ import (
 type server struct {
 	ice.Code
 	source string `data:"http://mirrors.tencent.com/ubuntu/pool/universe/m/mysql-5.6/mysql-5.6_5.6.33.orig.tar.gz"`
-	start  string `name:"start port=10002 username=root password=root" help:"启动"`
+	start  string `name:"start port*=10002 username*=root password*=root" help:"启动"`
 	list   string `name:"list port path auto start build download" help:"数据库"`
 }
 
@@ -33,8 +33,6 @@ func (s server) Start(m *ice.Message, arg ...string) {
 		"-e", kit.Format("set password for %s@%s = password('%s')", m.Option(aaa.USERNAME), tcp.LOCALHOST, m.Option(aaa.PASSWORD)))
 
 }
-func (s server) List(m *ice.Message, arg ...string) {
-	s.Code.List(m, "", arg...)
-}
+func (s server) List(m *ice.Message, arg ...string) { s.Code.List(m, "", arg...) }
 
 func init() { ice.CodeModCmd(server{}) }

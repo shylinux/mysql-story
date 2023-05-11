@@ -1,5 +1,7 @@
 shylinux.com/x/creackpty v0.0.2 h1:1ekWD5zeKZiQZCYvKSkHnm819wryZxzoq3kmvheC7bA=
 shylinux.com/x/creackpty v0.0.2/go.mod h1:SOsAaW5FdicXUprrxgENk2JP1f8LdHBXZjqOFot488o=
+shylinux.com/x/go-git/v5 v5.6.3 h1:TgxQSryjeDVOA33eYF8s+URzC3xdXsfJQaJAyq1liz0=
+shylinux.com/x/go-git/v5 v5.6.3/go.mod h1:FiJKLqM5ppFERgywelAfywwxc7UxpaYN5YH3Lhc2gys=
 shylinux.com/x/go-qrcode v0.0.2 h1:/c0PLj+1RT+kUPfnZVXwgbgH5m1SxBUjM2MIKXbDk+E=
 shylinux.com/x/go-qrcode v0.0.2/go.mod h1:TlzGBENHXy19xC3AsC6h4Vs5fx2ZuDA4TZ0U3C2OeK4=
 shylinux.com/x/go-sql-mysql v0.0.2 h1:XcsMEF3KnFmRu6EmxIwIF6M1o2tD1NQvel3U9m+1Ap4=
