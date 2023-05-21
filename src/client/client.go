@@ -26,8 +26,8 @@ type Client struct {
 	short string `data:"sess"`
 	field string `data:"time,sess,username,host,port,database"`
 
-	connect string `name:"connect sess=biz username=root password=root host=127.0.0.1 port=10002 database=mysql" help:"连接"`
-	list    string `name:"list sess@key database@key run cmd:textarea" help:"会话"`
+	create string `name:"create sess=biz username=root password=root host=127.0.0.1 port=10002 database=mysql" help:"连接"`
+	list   string `name:"list sess@key database@key run create cmd:textarea" help:"存储"`
 }
 
 func (s Client) meta(m *ice.Message, h string, db string) string {
@@ -50,7 +50,7 @@ func (s Client) Inputs(m *ice.Message, arg ...string) {
 		m.Cmdy(s, m.Option(aaa.SESS)).Cut(arg[0])
 	}
 }
-func (s Client) Connect(m *ice.Message, arg ...string) {
+func (s Client) Create(m *ice.Message, arg ...string) {
 	m.Cmd(mdb.INSERT, ice.GetTypeKey(s), "", mdb.HASH, arg)
 }
 func (s Client) Remove(m *ice.Message, arg ...string) {
@@ -58,7 +58,7 @@ func (s Client) Remove(m *ice.Message, arg ...string) {
 }
 func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 1 || arg[0] == "" {
-		s.Hash.List(m, arg...).Sort(aaa.SESS).PushAction(s.Xterm, s.Remove).Action(s.Connect)
+		s.Hash.List(m, arg...).Sort(aaa.SESS).PushAction(s.Xterm, s.Remove)
 	} else if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 2 {
 		_sql_query(m, dsn, "show databases").ToLowerAppend()
 	} else if len(arg) < 3 || arg[2] == "" {
