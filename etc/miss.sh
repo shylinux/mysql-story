@@ -7,7 +7,7 @@ fi
 require miss.sh
 ish_miss_prepare_compile
 ish_miss_prepare_develop
-ish_miss_prepare_operate
+ish_miss_prepare_project
 
 ish_miss_prepare release
 ish_miss_prepare_icebergs
