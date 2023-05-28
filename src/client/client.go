@@ -26,8 +26,8 @@ type Client struct {
 	short string `data:"sess"`
 	field string `data:"time,sess,username,host,port,database"`
 
-	create string `name:"create sess=biz username=root password=root host=127.0.0.1 port=10002 database=mysql" help:"连接"`
-	list   string `name:"list sess@key database@key run create cmd:textarea" help:"存储"`
+	create string `name:"create sess*=biz username*=demo password*=demo host*=127.0.0.1 port*=10002 database*=mysql" help:"连接"`
+	list   string `name:"list sess@key database@key auto create stmt:textarea" help:"存储"`
 }
 
 func (s Client) meta(m *ice.Message, h string, db string) string {
@@ -46,6 +46,7 @@ func (s Client) Inputs(m *ice.Message, arg ...string) {
 		m.Cmdy(aaa.USER).Cut("username,usernick")
 	case tcp.PORT:
 		m.Cmdy(tcp.SERVER).Cut("port,status,time")
+		m.Push(arg[0], "3306")
 	case DATABASE:
 		m.Cmdy(s, m.Option(aaa.SESS)).Cut(arg[0])
 	}
@@ -66,9 +67,7 @@ func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 			msg := _sql_query(m.Spawn(), dsn, kit.Format("show fields from %s", value[TABLE])).ToLowerAppend()
 			m.Push(mdb.FIELD, strings.Join(msg.Appendv(mdb.FIELD), ice.FS))
 		}).Action(s.ListScript)
-	} else if cmd := strings.ToLower(strings.TrimSpace(arg[2])); strings.HasPrefix(cmd, "show") {
-		_sql_query(m, dsn, arg[2])
-	} else if strings.HasPrefix(cmd, mdb.SELECT) {
+	} else if cmd := strings.ToLower(strings.TrimSpace(arg[2])); strings.HasPrefix(cmd, mdb.SELECT) || strings.HasPrefix(cmd, "show") {
 		_sql_query(m, dsn, arg[2])
 	} else {
 		_sql_exec(m, dsn, arg[2])
@@ -78,12 +77,14 @@ func (s Client) List(m *ice.Message, arg ...string) *ice.Message {
 func (s Client) Xterm(m *ice.Message, arg ...string) {
 	m.OptionFields("username,password,host,port")
 	msg := m.Cmd(mdb.SELECT, ice.GetTypeKey(s), "", mdb.HASH, m.OptionSimple(aaa.SESS))
-	s.Code.Xterm(m, []string{mdb.TYPE, kit.Format("%s -h%s -P%s -u%s -p%s", kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), "bin/mysql"),
-		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD))}, arg...)
+	p := kit.Path(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), "bin/mysql")
+	if m.Warn(!nfs.Exists(m.Message, p), ice.ErrNotFound, ice.BIN, p) {
+		return
+	}
+	s.Code.Xterm(m, []string{mdb.TYPE, kit.Format("%s -h%s -P%s -u%s -p%s", p, msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD))}, arg...)
 }
 func (s Client) ListScript(m *ice.Message, arg ...string) {
-	m.Cmdy(nfs.DIR, ice.SRC, kit.Dict(nfs.DIR_DEEP, ice.TRUE, nfs.DIR_REG, kit.ExtReg(SQL))).RenameAppend(nfs.PATH, nfs.FILE)
-	m.PushAction(s.CatScript, s.RunScript)
+	m.Cmdy(nfs.DIR, ice.SRC, kit.Dict(nfs.DIR_DEEP, ice.TRUE, nfs.DIR_REG, kit.ExtReg(SQL))).RenameAppend(nfs.PATH, nfs.FILE).PushAction(s.CatScript, s.RunScript)
 }
 func (s Client) CatScript(m *ice.Message, arg ...string) {
 	m.Cmdy(nfs.CAT, m.Option(nfs.FILE))
@@ -95,9 +96,7 @@ func (s Client) RunScript(m *ice.Message, arg ...string) {
 				continue
 			}
 			res, err := db.Exec(line)
-			m.Push(ice.ERR, kit.Format(err))
-			m.Push(ice.RES, kit.Format(res))
-			m.Push(nfs.LINE, line)
+			m.Push(ice.ERR, kit.Format(err)).Push(ice.RES, kit.Format(res)).Push(nfs.LINE, line)
 		}
 	})
 }

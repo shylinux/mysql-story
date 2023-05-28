@@ -49,8 +49,7 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	}
 	mdb.OptionPage(m.Message, kit.Slice(arg, 4, 6)...)
 	if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 4 || arg[3] == "" {
-		_sql_query(m, dsn, kit.Format("select * from %s %s limit %s offset %s",
-			arg[2], where, kit.Select("10", m.Option(mdb.LIMIT)), kit.Select("0", m.Option(mdb.OFFEND))))
+		_sql_query(m, dsn, kit.Format("select * from %s %s limit %s offset %s", arg[2], where, kit.Select("10", m.Option(mdb.LIMIT)), kit.Select("0", m.Option(mdb.OFFEND))))
 		m.Action(mdb.PAGE, "where:text=`"+kit.Select("", arg, 6)+"`@key")
 		m.StatusTimeCountTotal(_query_total(m, s.meta(m, arg[0], ""), where, arg...), TABLE, arg[2])
 	} else {
