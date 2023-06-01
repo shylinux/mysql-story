@@ -26,7 +26,7 @@ type Client struct {
 	short string `data:"sess"`
 	field string `data:"time,sess,username,host,port,database"`
 
-	create string `name:"create sess*=biz username*=root password*=root host*=127.0.0.1 port*=10002 database*=mysql" help:"连接"`
+	create string `name:"create sess*=biz username*=root password*=root host*=127.0.0.1 port*=10001 database*=mysql" help:"连接"`
 	list   string `name:"list sess@key database@key auto create stmt:textarea" help:"存储"`
 }
 
