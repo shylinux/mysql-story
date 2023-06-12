@@ -1,0 +1,54 @@
+title "ElasticSearch"
+refer `
+官网 https://www.elastic.co/cn/elasticsearch/
+源码 https://github.com/elastic/elasticsearch
+文档 https://www.elastic.co/guide/index.html
+入门 https://www.cnblogs.com/sunsky303/p/9438737.html
+`
+
+chapter "server"
+field web.code.elasticsearch.server
+
+section "下载安装"
+shell `
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.3.2-linux-x86_64.tar.gz
+tar xvf elasticsearch-7.3.2-linux-x86_64.tar.gz && cd elasticsearch-7.3.2
+`
+
+section "启动服务"
+shell `
+./bin/elasticsearch
+curl http://localhost:9200
+`
+
+chapter "client"
+field web.code.elasticsearch.client
+
+field "创建索引" web.code.elasticsearch.client args `biz PUT /index_test` args.-2 `
+{
+	"acknowledged": true
+}
+`
+field "创建映射" web.code.elasticsearch.client args `biz PUT /index_test/_mapping/test_type` args.-2 `
+{
+	"test_type": {
+		"properties": {
+			"name": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"age": {
+				"type": "integer"
+			}
+		}
+	}
+}
+`
+field "添加数据" web.code.elasticsearch.client args `biz PUT /index_test/test_type/1` args.-2 `
+{
+	"name": "zhangsan",
+	"age" : "12"
+}
+`
+field "查询数据" web.code.elasticsearch.client args `biz GET /index_test/test_type/1`
+

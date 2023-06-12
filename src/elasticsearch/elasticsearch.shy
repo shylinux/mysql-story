@@ -10,9 +10,15 @@ chapter "server"
 field web.code.elasticsearch.server
 
 section "下载安装"
-shell `
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.3.2-linux-x86_64.tar.gz
-tar xvf elasticsearch-7.3.2-linux-x86_64.tar.gz && cd elasticsearch-7.3.2
+shell linux `
+wget https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-linux-x86_64.tar.gz
+tar xvf elasticsearch-7.6.2-linux-x86_64.tar.gz && cd elasticsearch-7.6.2
+` macos `
+curl -O https://mirrors.huaweicloud.com/kibana/7.6.2/kibana-7.6.2-darwin-x86_64.tar.gz
+tar xvf elasticsearch-7.6.2-darwin-x86_64.tar.gz && cd elasticsearch-7.6.2
+` windows `
+wget https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-windows-x86_64.zip
+tar xvf elasticsearch-7.6.2-windows-x86_64.tar.gz && cd elasticsearch-7.6.2
 `
 
 section "启动服务"
@@ -24,12 +30,10 @@ curl http://localhost:9200
 chapter "client"
 field web.code.elasticsearch.client
 
-field "创建索引" web.code.elasticsearch.client args `biz PUT /index_test` args.-2 `
-{
-	"acknowledged": true
-}
+field "创建索引" web.code.elasticsearch.old.client args `biz PUT /index_test` args.-2 `
+{}
 `
-field "创建映射" web.code.elasticsearch.client args `biz PUT /index_test/_mapping/test_type` args.-2 `
+field "创建映射" web.code.elasticsearch.old.client args `biz PUT /index_test/_mapping/test_type` args.-2 `
 {
 	"test_type": {
 		"properties": {
@@ -44,11 +48,11 @@ field "创建映射" web.code.elasticsearch.client args `biz PUT /index_test/_ma
 	}
 }
 `
-field "添加数据" web.code.elasticsearch.client args `biz PUT /index_test/test_type/1` args.-2 `
+field "添加数据" web.code.elasticsearch.old.client args `biz PUT /index_test/test_type/1` args.-2 `
 {
 	"name": "zhangsan",
 	"age" : "12"
 }
 `
-field "查询数据" web.code.elasticsearch.client args `biz GET /index_test/test_type/1`
+field "查询数据" web.code.elasticsearch.old.client args `biz GET /index_test/test_type/1`
 
