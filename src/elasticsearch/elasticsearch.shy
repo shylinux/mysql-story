@@ -14,7 +14,7 @@ shell linux `
 wget https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-linux-x86_64.tar.gz
 tar xvf elasticsearch-7.6.2-linux-x86_64.tar.gz && cd elasticsearch-7.6.2
 ` macos `
-curl -O https://mirrors.huaweicloud.com/kibana/7.6.2/kibana-7.6.2-darwin-x86_64.tar.gz
+curl -O https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-darwin-x86_64.tar.gz
 tar xvf elasticsearch-7.6.2-darwin-x86_64.tar.gz && cd elasticsearch-7.6.2
 ` windows `
 wget https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-windows-x86_64.zip
