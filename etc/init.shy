@@ -1,3 +1,5 @@
 ~web
 	config space meta.main desktop
 	config serve meta.main /chat/cmd/desktop
+~web.chat.macos
+	applications install "compile" web.code.compile icon "usr/icons/go.png"

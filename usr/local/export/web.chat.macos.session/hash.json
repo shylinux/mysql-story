@@ -1,4 +1,12 @@
 {
+  "81c3b080dad537de7e10e0987a4bf52e": {
+    "meta": {
+      "_target": [],
+      "args": "[{\"name\":\"word\",\"list\":[{\"index\":\"web.wiki.word\",\"args\":[\"src/main.shy\"],\"style\":{\"left\":100,\"top\":25}}]},{\"name\":\"vimer\",\"list\":[{\"index\":\"web.code.vimer\",\"args\":[\"src/\",\"server/server.shy\",\"1\"],\"style\":{\"left\":100,\"top\":25}}]},{\"name\":\"Desktop2\",\"list\":[{\"index\":\"web.code.xterm\",\"args\":[\"3c483d\"],\"style\":{\"left\":83,\"top\":33}},{\"index\":\"web.code.xterm\",\"args\":[\"9b5fa9\"],\"style\":{\"left\":897,\"top\":169}},{\"index\":\"web.code.mysql.query\",\"args\":[\"biz\",\"mysql\",\"\",\"\"],\"style\":{\"left\":82,\"top\":182}}]}]",
+      "name": "mysql",
+      "time": "2023-07-10 18:54:03.329"
+    }
+  },
   "a5255f07d36fc90fe78a719b0bdb943b": {
     "meta": {
       "args": "[{\"name\":\"Desktop0\",\"list\":[{\"index\":\"web.code.vimer\",\"args\":[\"src/\",\"main.go\",\"1\"],\"style\":{\"left\":100,\"top\":25}}]}]",

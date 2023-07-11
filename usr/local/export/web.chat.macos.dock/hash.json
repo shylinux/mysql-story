@@ -30,5 +30,23 @@
       "name": "Finder",
       "time": "2023-05-11 13:20:58.944"
     }
+  },
+  "d2461d": {
+    "meta": {
+      "_target": [],
+      "icon": "/require/usr/icons/go.png",
+      "index": "web.code.compile",
+      "name": "compile",
+      "time": "2023-07-10 21:16:23.569"
+    }
+  },
+  "d7394b": {
+    "meta": {
+      "_target": [],
+      "icon": "/require/src/client/mysql.png",
+      "index": "web.code.mysql.query",
+      "name": "mysql",
+      "time": "2023-07-10 21:59:20.948"
+    }
   }
 }

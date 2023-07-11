@@ -2,7 +2,6 @@
   "9627c0": {
     "meta": {
       "_target": {
-        "Path": "/home/shy/contexts/usr/local/work/20230511-mysql-story/usr/local/daemon/10002/bin/mysql",
         "Args": [
           "/home/shy/contexts/usr/local/work/20230511-mysql-story/usr/local/daemon/10002/bin/mysql",
           "-h127.0.0.1",
@@ -10,6 +9,7 @@
           "-uroot",
           "-proot"
         ],
+        "Dir": "/home/shy/contexts/usr/local/work/20230511-mysql-story",
         "Env": [
           "ctx_ops=http://localhost:9020",
           "ctx_log=var/log/boot.log",
@@ -48,34 +48,34 @@
           "_=/home/shy/contexts/bin/ice.bin",
           "TERM=xterm"
         ],
-        "Dir": "/home/shy/contexts/usr/local/work/20230511-mysql-story",
-        "Stdin": {},
-        "Stdout": {},
-        "Stderr": {},
         "ExtraFiles": null,
-        "SysProcAttr": {
-          "Chroot": "",
-          "Credential": null,
-          "Ptrace": false,
-          "Setsid": true,
-          "Setpgid": false,
-          "Setctty": true,
-          "Noctty": false,
-          "Ctty": 0,
-          "Foreground": false,
-          "Pgid": 0,
-          "Pdeathsig": 0,
-          "Cloneflags": 0,
-          "Unshareflags": 0,
-          "UidMappings": null,
-          "GidMappings": null,
-          "GidMappingsEnableSetgroups": false,
-          "AmbientCaps": null
-        },
+        "Path": "/home/shy/contexts/usr/local/work/20230511-mysql-story/usr/local/daemon/10002/bin/mysql",
         "Process": {
           "Pid": 24274
         },
-        "ProcessState": null
+        "ProcessState": null,
+        "Stderr": {},
+        "Stdin": {},
+        "Stdout": {},
+        "SysProcAttr": {
+          "AmbientCaps": null,
+          "Chroot": "",
+          "Cloneflags": 0,
+          "Credential": null,
+          "Ctty": 0,
+          "Foreground": false,
+          "GidMappings": null,
+          "GidMappingsEnableSetgroups": false,
+          "Noctty": false,
+          "Pdeathsig": 0,
+          "Pgid": 0,
+          "Ptrace": false,
+          "Setctty": true,
+          "Setpgid": false,
+          "Setsid": true,
+          "UidMappings": null,
+          "Unshareflags": 0
+        }
       },
       "daemon": "113_87_50_76_54379.10",
       "time": "2023-05-26 16:13:05.767",

@@ -2,7 +2,8 @@ title "mysql"
 refer `
 官网 https://www.mysql.com/
 源码 https://github.com/mysql/mysql-server
-文档 https://dev.mysql.com/doc/refman/5.6/en/sql-data-definition-statements.html
+文档 https://dev.mysql.com/doc/refman/5.7/en/sql-data-definition-statements.html
+https://dev.mysql.com/doc/refman/5.7/en/binary-log.html
 `
 
 source server/server.shy

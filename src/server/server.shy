@@ -1,10 +1,19 @@
 chapter "server"
 field web.code.mysql.server
 
-section "编译安装"
-refer `
-https://cmake.org/download/
+section "下载安装"
+refer `https://dev.mysql.com/downloads/mysql/`
+shell linux `
+curl -O https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-linux-glibc2.5-x86_64.tar.gz
+` darwin `
+curl -O https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-osx10.11-x86_64.tar.gz
+tar xvf mysql-5.6.33-osx10.11-x86_64.tar.gz && cd mysql-5.6.33-osx10.11-x86_64
+` windows `
+curl -O https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-winx64.zip
 `
+
+section "编译安装"
+refer `cmake https://cmake.org/download/`
 shell `
 yum update -y
 yum install -y wget make cmake gcc gcc-c++ bison.x86_64
@@ -16,11 +25,11 @@ tar xvf mysql-5.6_5.6.33.orig.tar.gz && cd mysql-5.6.33
 
 cmake ./ -DCMAKE_INSTALL_PREFIX=./_install -DDEFAULT_COLLATION=utf8_general_ci -DDEFAULT_CHARSET=utf8 -DEXTRA_CHARSETS=all
 make -j8 && make install
+cd ./_install
 `
 
 section "配置服务"
 shell `
-cd ./_install
 ./scripts/mysql_install_db --datadir=./data
 `
 
@@ -45,8 +54,6 @@ shell `
 section "设置密码"
 shell `
 ./bin/mysql -S ./data/mysqld.socket -u root
-`
-spark mysql `
 set password for root@localhost = password('root');
 `
 

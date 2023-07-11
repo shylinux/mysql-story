@@ -2,17 +2,31 @@ chapter "client"
 field web.code.mysql.client
 field web.code.mysql.grant
 field web.code.mysql.query
+field web.code.mysql.sql
+shell `
+SHOW DATABASES;
+CREATE DATABASE menagerie;
+USE menagerie;
+
+SHOW TABLES;
+CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE);
+DESCRIBE pet;
+
+LOAD DATA LOCAL INFILE '/path/pet.txt' INTO TABLE pet;
+INSERT INTO pet VALUES ('Puffball','Diane','hamster','f','1999-03-30',NULL);
+DELETE FROM pet;
+SELECT * FROM pet;
+UPDATE pet SET birth = '1989-08-31' WHERE name = 'Bowser';
+
+GRANT ALL ON menagerie.* TO 'your_mysql_name'@'your_client_host';
+QUIT
+`
+return
 
 section "数据库"
-field "创建库" web.code.mysql.client args `biz ""` args.-2 `
-create database dbStoredPaas
-`
-field "查看库" web.code.mysql.client args `biz ""` args.-2 `
-show databases
-`
-field "删除库" web.code.mysql.client args `biz ""` args.-2 `
-drop database dbStoredPaas
-`
+field "创建库" web.code.mysql.client args `biz ""` args.-2 `create database dbStoredPaas`
+field "查看库" web.code.mysql.client args `biz ""` args.-2 `show databases`
+field "删除库" web.code.mysql.client args `biz ""` args.-2 `drop database dbStoredPaas`
 
 section "关系表"
 field "创建表" web.code.mysql.client args `biz ""` args.-2 `
@@ -23,12 +37,8 @@ create table if not exists dbStoredPaas.tblService(
 )
 `
 
-field "查看表" web.code.mysql.client args `biz ""` args.-2 `
-show tables in dbStoredPaas
-`
-field "删除表" web.code.mysql.client args `biz ""` args.-2 `
-drop table dbStoredPaas.tblService
-`
+field "查看表" web.code.mysql.client args `biz ""` args.-2 `show tables in dbStoredPaas`
+field "删除表" web.code.mysql.client args `biz ""` args.-2 `drop table dbStoredPaas.tblService`
 
 section "记录行"
 field "添加记录" web.code.mysql.client args `biz ""` args.-2 `

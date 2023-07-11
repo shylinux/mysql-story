@@ -2,6 +2,7 @@ package client
 
 import (
 	"shylinux.com/x/ice"
+	"shylinux.com/x/icebergs/base/nfs"
 	"shylinux.com/x/icebergs/core/code"
 	kit "shylinux.com/x/toolkits"
 )
@@ -9,13 +10,23 @@ import (
 const (
 	SQL = "sql"
 )
-type sql struct{ ice.Lang }
 
-func (h sql) Init(m *ice.Message, arg ...string) {
-	h.Lang.Init(m, code.SPLIT, kit.Dict(code.SPACE, "\t ", code.OPERATOR, ""),
+type sql struct {
+	ice.Lang
+	ice.Code
+	Client
+	regexp  string `data:"sql"`
+	command string `data:"sql"`
+
+	list string `name:"list sess@key database@key auto" help:"脚本"`
+}
+
+func (s sql) Init(m *ice.Message, arg ...string) {
+	s.Lang.Init(m, code.SPLIT, kit.Dict(code.SPACE, "\t ", code.OPERATOR, ""),
 		code.PREFIX, kit.Dict("<!-- ", code.COMMENT), code.PREPARE, kit.Dict(
 			code.KEYWORD, kit.Simple(
 				"create", "table", "if", "not", "exists",
+				"show",
 				"index", "on",
 			),
 			code.CONSTANT, kit.Simple(
@@ -35,7 +46,20 @@ func (h sql) Init(m *ice.Message, arg ...string) {
 			),
 		))
 }
-func (h sql) Render(m *ice.Message, arg ...string) {}
-func (h sql) Engine(m *ice.Message, arg ...string) {}
+func (s sql) Render(m *ice.Message, arg ...string) {}
+func (s sql) Engine(m *ice.Message, arg ...string) {}
+func (s sql) List(m *ice.Message, arg ...string) {
+	if len(arg) < 2 || arg[0] == "" || arg[1] == "" {
+		m.Cmdy(s.Client, arg)
+		return
+	}
+	s.Code.ListScript(m)
+}
+func (s sql) CatScript(m *ice.Message) {
+	m.Cmdy(nfs.CAT, m.Option(nfs.PATH))
+}
+func (s sql) RunScript(m *ice.Message) {
+	_sql_exec(m, s.Client.meta(m, m.Option("sess"), m.Option("database")), "")
+}
 
 func init() { ice.CodeModCmd(sql{}) }

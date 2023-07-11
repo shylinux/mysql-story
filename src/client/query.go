@@ -4,6 +4,8 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/mdb"
+	"shylinux.com/x/icebergs/core/chat/macos"
+	"shylinux.com/x/icebergs/core/code"
 	kit "shylinux.com/x/toolkits"
 )
 
@@ -18,6 +20,9 @@ type Query struct {
 	list  string `name:"list sess@key database@key table@key id auto" help:"查询"`
 }
 
+func (s Query) Init(m *ice.Message, arg ...string) {
+	m.Cmd(macos.APPLICATIONS, code.INSTALL, "mysql", m.PrefixKey(), mdb.ICON, m.Resource("mysql.png"))
+}
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case TABLE:
