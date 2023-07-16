@@ -1,61 +1,67 @@
 {
-  "12197d": {
+  "5bd63f": {
     "meta": {
-      "_target": [],
-      "icon": "/require/usr/icons/git.jpg",
-      "index": "web.code.git.status",
-      "name": "repos",
-      "time": "2023-07-16 11:01:21.481"
+      "icon": "/require/usr/icons/go.png",
+      "index": "web.code.compile",
+      "name": "compile",
+      "time": "2023-07-12 10:16:45.614"
     }
   },
-  "491fb1": {
-    "meta": {
-      "icon": "usr/icons/vimer.png",
-      "index": "web.code.vimer",
-      "name": "vimer",
-      "time": "2023-05-11 13:20:58.945"
-    }
-  },
-  "8a7a0a": {
-    "meta": {
-      "icon": "usr/icons/Terminal.png",
-      "index": "web.code.xterm",
-      "name": "Terminal",
-      "time": "2023-05-11 13:20:58.945"
-    }
-  },
-  "a81782": {
+  "7b06e7": {
     "meta": {
       "icon": "usr/icons/Safari.png",
       "index": "web.chat.iframe",
       "name": "Safari",
-      "time": "2023-05-11 13:20:58.945"
+      "time": "2023-05-24 15:32:00.613"
     }
   },
-  "aa3983": {
+  "955f91": {
     "meta": {
-      "icon": "usr/icons/Finder.png",
-      "index": "web.chat.macos.finder",
-      "name": "Finder",
-      "time": "2023-05-11 13:20:58.944"
+      "icon": "/require/usr/icons/Mission Control.png",
+      "index": "web.dream",
+      "name": "dream",
+      "time": "2023-07-12 10:16:45.613"
     }
   },
-  "d2461d": {
+  "99baca": {
     "meta": {
-      "_target": [],
-      "icon": "/require/usr/icons/go.png",
-      "index": "web.code.compile",
-      "name": "compile",
-      "time": "2023-07-10 21:16:23.569"
+      "icon": "usr/icons/vimer.png",
+      "index": "web.code.vimer",
+      "name": "vimer",
+      "time": "2023-05-24 15:32:00.615"
     }
   },
-  "d7394b": {
+  "c1e83f": {
     "meta": {
       "_target": [],
       "icon": "/require/src/client/mysql.png",
       "index": "web.code.mysql.query",
       "name": "mysql",
-      "time": "2023-07-10 21:59:20.948"
+      "time": "2023-07-16 16:48:38.122"
+    }
+  },
+  "d5df43": {
+    "meta": {
+      "icon": "usr/icons/Finder.png",
+      "index": "web.chat.macos.finder",
+      "name": "Finder",
+      "time": "2023-05-24 15:32:00.612"
+    }
+  },
+  "e615d4": {
+    "meta": {
+      "icon": "usr/icons/Terminal.png",
+      "index": "web.code.xterm",
+      "name": "Terminal",
+      "time": "2023-05-24 15:32:00.614"
+    }
+  },
+  "eac248": {
+    "meta": {
+      "icon": "/require/usr/icons/git.jpg",
+      "index": "web.code.git.status",
+      "name": "status",
+      "time": "2023-07-15 14:31:26.486"
     }
   }
 }
