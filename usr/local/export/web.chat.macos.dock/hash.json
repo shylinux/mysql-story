@@ -1,4 +1,13 @@
 {
+  "56b892": {
+    "meta": {
+      "_target": [],
+      "icon": "/require/usr/icons/Mission Control.png",
+      "index": "dream",
+      "name": "dream",
+      "time": "2023-07-31 16:36:01.189"
+    }
+  },
   "5bd63f": {
     "meta": {
       "icon": "/require/usr/icons/go.png",
@@ -13,14 +22,6 @@
       "index": "web.chat.iframe",
       "name": "Safari",
       "time": "2023-05-24 15:32:00.613"
-    }
-  },
-  "955f91": {
-    "meta": {
-      "icon": "/require/usr/icons/Mission Control.png",
-      "index": "web.dream",
-      "name": "dream",
-      "time": "2023-07-12 10:16:45.613"
     }
   },
   "99baca": {
