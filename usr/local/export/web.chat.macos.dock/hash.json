@@ -1,13 +1,4 @@
 {
-  "56b892": {
-    "meta": {
-      "_target": [],
-      "icon": "/require/usr/icons/Mission Control.png",
-      "index": "dream",
-      "name": "dream",
-      "time": "2023-07-31 16:36:01.189"
-    }
-  },
   "5bd63f": {
     "meta": {
       "icon": "/require/usr/icons/go.png",
@@ -30,15 +21,6 @@
       "index": "web.code.vimer",
       "name": "vimer",
       "time": "2023-05-24 15:32:00.615"
-    }
-  },
-  "c1e83f": {
-    "meta": {
-      "_target": [],
-      "icon": "/require/src/client/mysql.png",
-      "index": "web.code.mysql.query",
-      "name": "mysql",
-      "time": "2023-07-16 16:48:38.122"
     }
   },
   "d5df43": {

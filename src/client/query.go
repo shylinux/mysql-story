@@ -39,8 +39,9 @@ func (s Query) Modify(m *ice.Message, arg ...string) {
 		m.Cmd(s.Client, s.Modify, arg)
 		return
 	}
-	_sql_exec(m.Spawn(), s.meta(m, m.Option(aaa.SESS), m.Option(DATABASE)), kit.Format("update %s set %s='%s' where id=%s",
-		m.Option(TABLE), arg[0], arg[1], m.Option(mdb.ID)))
+	s.open(m, m.Option(aaa.SESS), m.Option(DATABASE), func(db *Driver) {
+		db.Exec(m, kit.Format("update %s set %s='%s' where id=%s", m.Option(TABLE), arg[0], arg[1], m.Option(mdb.ID)))
+	})
 }
 func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) < 3 || arg[0] == "" || arg[1] == "" || arg[2] == "" {
@@ -53,14 +54,17 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 		where = WHERE + ice.SP + where
 	}
 	mdb.OptionPage(m.Message, kit.Slice(arg, 4, 6)...)
-	if dsn := s.meta(m, arg[0], kit.Select("", arg, 1)); len(arg) < 4 || arg[3] == "" {
-		_sql_query(m, dsn, kit.Format("select * from %s %s limit %s offset %s", arg[2], where, kit.Select("10", m.Option(mdb.LIMIT)), kit.Select("0", m.Option(mdb.OFFEND))))
-		m.Action(mdb.PAGE, "where:text=`"+kit.Select("", arg, 6)+"`@key")
-		m.StatusTimeCountTotal(_query_total(m, s.meta(m, arg[0], ""), where, arg...), TABLE, arg[2])
-	} else {
-		m.OptionFields(ice.FIELDS_DETAIL)
-		_sql_query(m, dsn, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
-	}
+
+	s.open(m, arg[0], kit.Select("", arg, 1), func(db *Driver) {
+		if len(arg) < 4 || arg[3] == "" {
+			db.Query(m, kit.Format("select * from %s %s limit %s offset %s", arg[2], where, kit.Select("10", m.Option(mdb.LIMIT)), kit.Select("0", m.Option(mdb.OFFEND))))
+			m.Action(mdb.PAGE, "where:text=`"+kit.Select("", arg, 6)+"`@key")
+			m.StatusTimeCountTotal(db.Total(m, where, arg...), TABLE, arg[2])
+		} else {
+			m.OptionFields(ice.FIELDS_DETAIL)
+			db.Query(m, kit.Format("select * from %s where id = %s", arg[2], arg[3]))
+		}
+	})
 	return m
 }
 func (s Query) Prev(m *ice.Message, arg ...string) {
@@ -71,11 +75,3 @@ func (s Query) Next(m *ice.Message, arg ...string) {
 }
 
 func init() { ice.CodeModCmd(Query{}) }
-
-func _query_total(m *ice.Message, dsn string, where string, arg ...string) string {
-	if len(arg) > 2 {
-		msg := _sql_query(m.Spawn(), dsn, kit.Format("select count(*) as total from %s %s", kit.Keys(arg[1], arg[2]), where))
-		return msg.Append(mdb.TOTAL)
-	}
-	return ""
-}

@@ -1,3 +1,4 @@
+export CGO_ENABLED=1
 publish = usr/publish
 binarys = bin/ice.bin
 version = src/version.go

@@ -59,7 +59,9 @@ func (s sql) CatScript(m *ice.Message) {
 	m.Cmdy(nfs.CAT, m.Option(nfs.PATH))
 }
 func (s sql) RunScript(m *ice.Message) {
-	_sql_exec(m, s.Client.meta(m, m.Option("sess"), m.Option("database")), "")
+	s.open(m, m.Option("sess"), m.Option("database"), func(db *Driver) {
+		db.Exec(m, "")
+	})
 }
 
 func init() { ice.CodeModCmd(sql{}) }

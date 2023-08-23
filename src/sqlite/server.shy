@@ -1,0 +1,43 @@
+section "server"
+
+field web.code.sqlite.server
+
+shell linux `
+curl -O https://sqlite.org/2023/sqlite-tools-linux-x86-3420000.zip
+unzip sqlite-tools-linux-x86-3420000.zip && cd sqlite-tools-linux-x86-3420000
+./sqlite3
+` darwin `
+curl -O https://sqlite.org/2023/sqlite-tools-osx-x86-3420000.zip 
+
+` windows `
+curl -O https://sqlite.org/2023/sqlite-tools-win32-x86-3420000.zip
+` source `
+curl -O https://sqlite.org/2023/sqlite-autoconf-3420000.tar.gz
+tar xvf sqlite-autoconf-3420000.tar.gz && cd sqlite-autoconf-3420000
+
+./configure --prefix=$PWD/_install
+make -j8 && make install
+
+cd ./_install
+./bin/sqlite3
+`
+
+spark `常用命令`
+shell `
+.help
+.quit
+.table
+
+.dump
+.read
+`
+
+spark `操作数据`
+shell `
+CREATE TABLE company(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, age INT NOT NULL, address CHAR(50), salary REAL);
+INSERT INTO company (name, age, address, salary) VALUES ('Paul', 32, 'California', 20000.00);
+SELECT * FROM company;
+UPDATE company SET address = 'Texas' WHERE id = 6;
+DELETE FROM company WHERE ID = 7;
+DROP TABLE company;
+`
