@@ -19,7 +19,7 @@ type client struct {
 	addIndex   string `name:"addIndex index*=demo"`
 	addMapping string `name:"addMapping mapping*=user properties*:textarea"`
 	create     string `name:"create sess*=biz host=localhost port*=10004" help:"创建"`
-	list       string `name:"list sess@key index mapping query auto" help:"搜索引擎"`
+	list       string `name:"list sess@key index mapping query auto" help:"搜索引擎" icon:"elastic.png"`
 }
 
 func (s client) Inputs(m *ice.Message, arg ...string) {
