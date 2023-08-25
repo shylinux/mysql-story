@@ -1,52 +1,11 @@
 chapter "client"
+refer `
+MySQL必知必会 https://weread.qq.com/web/reader/929321f0715c01b5929bd3fk16732dc0161679091c5aeb1
+isolate https://learnku.com/articles/40258
+`
 field web.code.mysql.client
 field web.code.mysql.grant
 field web.code.mysql.query
 field web.code.mysql.sql
-shell `
-SHOW DATABASES;
-CREATE DATABASE menagerie;
-USE menagerie;
-
-SHOW TABLES;
-CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE);
-DESCRIBE pet;
-
-LOAD DATA LOCAL INFILE '/path/pet.txt' INTO TABLE pet;
-INSERT INTO pet VALUES ('Puffball','Diane','hamster','f','1999-03-30',NULL);
-DELETE FROM pet;
-SELECT * FROM pet;
-UPDATE pet SET birth = '1989-08-31' WHERE name = 'Bowser';
-
-GRANT ALL ON menagerie.* TO 'your_mysql_name'@'your_client_host';
-QUIT
-`
-return
-
-section "数据库"
-field "创建库" web.code.mysql.client args `biz ""` args.-2 `create database dbStoredPaas`
-field "查看库" web.code.mysql.client args `biz ""` args.-2 `show databases`
-field "删除库" web.code.mysql.client args `biz ""` args.-2 `drop database dbStoredPaas`
-
-section "关系表"
-field "创建表" web.code.mysql.client args `biz ""` args.-2 `
-create table if not exists dbStoredPaas.tblService(
-  id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name varchar(20), extra text,
-  portRange varchar(20)
-)
-`
-
-field "查看表" web.code.mysql.client args `biz ""` args.-2 `show tables in dbStoredPaas`
-field "删除表" web.code.mysql.client args `biz ""` args.-2 `drop table dbStoredPaas.tblService`
-
-section "记录行"
-field "添加记录" web.code.mysql.client args `biz ""` args.-2 `
-insert into dbStoredPaas.tblService(name, portRange, extra)
-  value("stored-matrix", "[8000,9000]", "{}")
-`
-
-field "查询记录" web.code.mysql.client args `biz ""` args.-2 `
-select * from dbStoredPaas.tblService
-`
-
+spark inner show.sql
+spark inner demo.sql

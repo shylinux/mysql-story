@@ -1,0 +1,12 @@
+title "ElasticSearch"
+refer `
+官网 https://www.elastic.co/cn/elasticsearch/
+源码 https://github.com/elastic/elasticsearch
+文档 https://www.elastic.co/guide/index.html
+教程 https://docs.kilvn.com/elasticsearch/
+简介 https://zhuanlan.zhihu.com/p/649898036
+安装 https://www.cnblogs.com/sunsky303/p/9438737.html
+`
+
+source server.shy
+source client.shy

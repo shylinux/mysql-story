@@ -18,7 +18,7 @@ type server struct {
 }
 
 func (s server) Start(m *ice.Message, arg ...string) {
-	s.Code.Start(m, "", "", func(p string, port int) {
+	s.Code.Start(m, "", "bin/elasticsearch", func(p string, port int) {
 		nfs.Rewrite(m.Message, path.Join(p, "config/elasticsearch.yml"), func(text string) string {
 			if text == "#http.port: 9200" {
 				text = kit.Format("http.port: %d\ntransport.tcp.port: %d\n", port, port+10000)

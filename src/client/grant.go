@@ -16,24 +16,23 @@ type Grant struct {
 	Client
 	grants string `name:"grants sess* method*=all target*='*.*' host*=% username* password*" help:"授权"`
 	revoke string `name:"revoke sess* method*=all target*='*.*' host username*" help:"撤销"`
-	drop   string `name:"drop" help:"删除"`
 	list   string `name:"list sess auto" help:"权限"`
 }
 
 func (s Grant) Grants(m *ice.Message, arg ...string) {
 	s.open(m, m.Option(aaa.SESS), MYSQL, func(db *Driver) {
-		db.Exec(m, kit.Format("create user '%s'@'%s' identified by '%s'", m.Option(aaa.USERNAME), m.Option(tcp.HOST), m.Option(aaa.PASSWORD)))
-		db.Exec(m, kit.Format("grant %s on %s to '%s'@'%s'", m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
+		db.Exec(m.Spawn(), kit.Format("create user '%s'@'%s' identified by '%s'", m.Option(aaa.USERNAME), m.Option(tcp.HOST), m.Option(aaa.PASSWORD)))
+		db.Exec(m.Spawn(), kit.Format("grant %s on %s to '%s'@'%s'", m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
 	})
 }
 func (s Grant) Revoke(m *ice.Message, arg ...string) {
 	s.open(m, m.Option(aaa.SESS), MYSQL, func(db *Driver) {
-		db.Exec(m, kit.Format("revoke %s on %s from '%s'@'%s'", m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
+		db.Exec(m.Spawn(), kit.Format("revoke %s on %s from '%s'@'%s'", m.Option(METHOD), m.Option(TARGET), m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
 	})
 }
 func (s Grant) Drop(m *ice.Message, arg ...string) {
 	s.open(m, m.Option(aaa.SESS), MYSQL, func(db *Driver) {
-		db.Exec(m, kit.Format("drop user '%s'@'%s'", m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
+		db.Exec(m.Spawn(), kit.Format("drop user '%s'@'%s'", m.Option(aaa.USERNAME), m.Option(tcp.HOST)))
 	})
 }
 func (s Grant) List(m *ice.Message, arg ...string) {

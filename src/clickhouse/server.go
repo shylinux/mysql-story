@@ -7,7 +7,7 @@ import (
 type server struct {
 	ice.Code
 	linux string `data:"https://packages.clickhouse.com/tgz/stable/clickhouse-common-static-21.1.9.41.tgz"`
-	list  string `name:"list port path auto start install" help:"存储"`
+	list  string `name:"list port path auto start install" help:"数据库"`
 }
 
 func (s server) Start(m *ice.Message, arg ...string) {

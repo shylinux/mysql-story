@@ -4,8 +4,6 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/mdb"
-	"shylinux.com/x/icebergs/core/chat/macos"
-	"shylinux.com/x/icebergs/core/code"
 	kit "shylinux.com/x/toolkits"
 )
 
@@ -20,16 +18,12 @@ type Query struct {
 	list  string `name:"list sess@key database@key table@key id auto" help:"查询"`
 }
 
-func (s Query) Init(m *ice.Message, arg ...string) {
-	m.Cmd(macos.APPLICATIONS, code.INSTALL, "mysql", m.PrefixKey(), mdb.ICON, m.Resource("mysql.png"))
-}
 func (s Query) Inputs(m *ice.Message, arg ...string) {
 	switch arg[0] {
 	case TABLE:
 		s.List(m, m.Option(aaa.SESS), m.Option(DATABASE)).Cut(arg[0])
 	case WHERE:
-		defer m.Sort(WHERE)
-		s.Hash.Inputs(m, arg...)
+		s.Hash.Inputs(m, arg...).Sort(arg[0])
 	default:
 		s.Client.Inputs(m, arg...)
 	}
@@ -39,6 +33,7 @@ func (s Query) Modify(m *ice.Message, arg ...string) {
 		m.Cmd(s.Client, s.Modify, arg)
 		return
 	}
+	defer m.ProcessRefresh()
 	s.open(m, m.Option(aaa.SESS), m.Option(DATABASE), func(db *Driver) {
 		db.Exec(m, kit.Format("update %s set %s='%s' where id=%s", m.Option(TABLE), arg[0], arg[1], m.Option(mdb.ID)))
 	})
@@ -54,7 +49,6 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 		where = WHERE + ice.SP + where
 	}
 	mdb.OptionPage(m.Message, kit.Slice(arg, 4, 6)...)
-
 	s.open(m, arg[0], kit.Select("", arg, 1), func(db *Driver) {
 		if len(arg) < 4 || arg[3] == "" {
 			db.Query(m, kit.Format("select * from %s %s limit %s offset %s", arg[2], where, kit.Select("10", m.Option(mdb.LIMIT)), kit.Select("0", m.Option(mdb.OFFEND))))
@@ -67,11 +61,7 @@ func (s Query) List(m *ice.Message, arg ...string) *ice.Message {
 	})
 	return m
 }
-func (s Query) Prev(m *ice.Message, arg ...string) {
-	mdb.NextPageLimit(m.Message, arg[0], arg[1:]...)
-}
-func (s Query) Next(m *ice.Message, arg ...string) {
-	mdb.PrevPage(m.Message, arg[0], arg[1:]...)
-}
+func (s Query) Prev(m *ice.Message, arg ...string) { mdb.NextPageLimit(m.Message, arg[0], arg[1:]...) }
+func (s Query) Next(m *ice.Message, arg ...string) { mdb.PrevPage(m.Message, arg[0], arg[1:]...) }
 
 func init() { ice.CodeModCmd(Query{}) }

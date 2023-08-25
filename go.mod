@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/elastic/go-elasticsearch v0.0.0 // indirect
 	github.com/glebarez/sqlite v1.9.0 // indirect
 	github.com/go-sqlite/sqlite3 v0.0.0-20180313105335-53dd8e640ee7 // indirect
 	github.com/gonuts/binary v0.2.0 // indirect

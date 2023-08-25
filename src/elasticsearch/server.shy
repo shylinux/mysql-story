@@ -1,0 +1,41 @@
+chapter "server"
+field web.code.elasticsearch.server
+
+section "下载安装"
+shell linux `
+curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.4.0.tar.gz
+tar -xvf elasticsearch-5.4.0.tar.gz && cd elasticsearch-5.4.0
+
+curl -O https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-linux-x86_64.tar.gz
+tar xvf elasticsearch-7.6.2-linux-x86_64.tar.gz && cd elasticsearch-7.6.2
+` macos `
+curl -O https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-darwin-x86_64.tar.gz
+tar xvf elasticsearch-7.6.2-darwin-x86_64.tar.gz && cd elasticsearch-7.6.2
+` windows `
+curl -O https://mirrors.huaweicloud.com/elasticsearch/7.6.2/elasticsearch-7.6.2-windows-x86_64.zip
+tar xvf elasticsearch-7.6.2-windows-x86_64.tar.gz && cd elasticsearch-7.6.2
+`
+
+section "启动服务"
+shell `
+./bin/elasticsearch
+curl http://localhost:9200
+curl -XGET 'localhost:9200/_cat/health?v&pretty'
+curl -XGET 'localhost:9200/_cat/nodes?v&pretty'
+`
+
+spark `索引`
+shell `
+curl -XGET 'localhost:9200/_cat/indices?v&pretty'
+curl -XPUT 'localhost:9200/customer?pretty&pretty'
+curl -XDELETE 'localhost:9200/customer?pretty&pretty'
+curl -XGET 'localhost:9200/customer/_mapping?pretty'
+`
+
+spark `文档`
+shell `
+curl -XGET 'localhost:9200/customer/external/1?pretty&pretty'
+curl -XPUT 'localhost:9200/customer/external/1?pretty&pretty' -d'{"name": "John Doe"}'
+curl -XPOST 'localhost:9200/customer/external/1/_update?pretty&pretty' -d '{"doc": { "name": "Jane Doe", "age": 20 }}'
+curl -XPOST 'localhost:9200/customer/external/1/_update?pretty&pretty' -d' {"script": "ctx._source.age += 5"}'
+`

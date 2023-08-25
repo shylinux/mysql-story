@@ -4,6 +4,8 @@ refer `
 下载 https://sqlite.org/download.html
 文档 https://sqlite.org/docs.html
 教程 https://www.tutorialspoint.com/sqlite/index.htm#
+
+https://learnku.com/articles/40174
 `
 source server.shy
 source client.shy

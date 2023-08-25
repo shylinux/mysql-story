@@ -1,20 +1,16 @@
-title "clickhouse"
+chapter "clickhouse"
 refer `
 官网 https://clickhouse.tech/
 文档 https://clickhouse.tech/docs/en/
 源码 https://github.com/ClickHouse/ClickHouse
 `
-
-chapter "server"
 field web.code.clickhouse.server
 
-section "下载安装"
 shell ` 
 wget https://packages.clickhouse.com/tgz/stable/clickhouse-common-static-21.1.9.41.tgz
 tar xvf clickhouse-common-static-21.1.9.41.tgz && cd clickhouse-common-static-21.1.9.41
 `
 
-section "启动服务"
 shell ` 
 ./usr/bin/clickhouse server
 ./usr/bin/clickhouse client
