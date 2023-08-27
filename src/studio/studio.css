@@ -1,4 +1,5 @@
 fieldset.web.code.mysql.studio>div.output fieldset.story { margin:20px; }
+fieldset.web.code.mysql.studio>div.output fieldset.web.code.mysql.query>div.output>table.content { width:100%; }
 fieldset.web.code.mysql.studio>div.output fieldset.web.code.mysql.query>form.option>div.item.sess { display:none; }
 fieldset.web.code.mysql.studio>div.output fieldset.web.code.mysql.query>form.option>div.item.database { display:none; }
 fieldset.web.code.mysql.studio>div.output fieldset.web.code.mysql.query>form.option>div.item.table { display:none; }

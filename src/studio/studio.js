@@ -1,7 +1,6 @@
 (function() { const DATABASE = "database", TABLE = "table"
 Volcanos(chat.ONIMPORT, {
 	_init: function(can, msg) { can.onmotion.clear(can), can.ui = can.onappend.layout(can)
-		can.onmotion.hidden(can, can.ui.profile), can.onmotion.hidden(can, can.ui.display), can.onmotion.hidden(can, can._status)
 		can.db._hash = can.misc.SearchHash(can), can.onimport._session(can, msg, can.ui.project)
 		can.sup.onimport._field = function(msg) { can.onimport._plugin(can, msg) }
 	},
@@ -38,11 +37,7 @@ Volcanos(chat.ONIMPORT, {
 			if (can.onmotion.cache(can, function() { return value.index }, can.ui.content)) { return can.onimport.layout(can) }
 			can.onappend.plugin(can, value, function(sub) {
 				value._sub = sub, sub.onexport.output = function() { can.onimport.layout(can) }
-				sub.onexport.title = function(_, title) {
-					can.page.Select(can, value._tabs, "span.name", function(target) {
-						target.innerHTML = title
-					})
-				}
+				sub.onexport.title = function(_, title) { can.page.Select(can, value._tabs, html.SPAN_NAME, function(target) { target.innerHTML = title }) }
 			}, can.ui.content)
 		})
 	}) },

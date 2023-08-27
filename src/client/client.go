@@ -45,6 +45,8 @@ func (s Client) Inputs(m *ice.Message, arg ...string) {
 		m.Cmdy(s, m.Option(aaa.SESS)).Cut(arg[0])
 	case DRIVER:
 		m.Push(arg[0], MYSQL)
+	default:
+		s.Hash.Inputs(m, arg...)
 	}
 }
 func (s Client) Connect(m *ice.Message, arg ...string) {
