@@ -47,13 +47,5 @@
       "name": "Terminal",
       "time": "2023-05-24 15:32:00.614"
     }
-  },
-  "eac248": {
-    "meta": {
-      "icon": "/require/usr/icons/git.jpg",
-      "index": "web.code.git.status",
-      "name": "status",
-      "time": "2023-07-15 14:31:26.486"
-    }
   }
 }
