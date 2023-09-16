@@ -7,7 +7,7 @@ import (
 
 type Studio struct {
 	client.Client
-	list string `name:"list refresh create" help:"数据库" icon:"mysql.png"`
+	list string `name:"list refresh connect" help:"数据库" icon:"mysql.png"`
 }
 
 func (s Studio) List(m *ice.Message, arg ...string) {
