@@ -1,7 +1,6 @@
 {
   "258fa3": {
     "meta": {
-      "_target": [],
       "icon": "/require/usr/icons/git.png?pod=20230511-mysql-story",
       "index": "web.code.git.status",
       "name": "status",

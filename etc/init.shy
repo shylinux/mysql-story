@@ -1,9 +1,7 @@
 ~web
-	config space meta.main desktop
-	config serve meta.main /chat/cmd/desktop
-
+	config serve main /chat/cmd/desktop
+	config space main desktop
 ~web.code
 	config install repos "https://repos.shylinux.com/api/packages/x/generic/install/latest/"
-
 ~ssh
 	source local.shy
