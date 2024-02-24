@@ -1,6 +1,6 @@
 ~web
-	config serve main /chat/cmd/desktop
 	config space main desktop
+	config serve main desktop
 ~web.code
 	config install repos "https://repos.shylinux.com/api/packages/x/generic/install/latest/"
 ~ssh

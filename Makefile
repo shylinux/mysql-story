@@ -1,4 +1,3 @@
-export CGO_ENABLED=1
 binarys = bin/ice.bin
 version = src/version.go
 binpack = src/binpack.go
