@@ -19,4 +19,6 @@ ish_miss_prepare_release
 ish_miss_prepare_modules
 ish_miss_prepare icons
 
+ish_miss_prepare go-sql-mysql
+
 ish_miss_make; [ -z "$*" ] || ish_miss_serve "$@"
