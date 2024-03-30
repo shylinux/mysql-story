@@ -40,7 +40,7 @@ func (s server) Start(m *ice.Message, arg ...string) {
 
 }
 func (s server) Xterm(m *ice.Message, arg ...string) {
-	s.Code.Xterm(m, []string{mdb.TYPE, kit.Format("bin/mysql -h 127.0.0.1 -P %s", m.Option(tcp.PORT)), nfs.PATH, kit.Path(m.Option(nfs.DIR)) + nfs.PS}, arg...)
+	s.Code.Xterm(m, "", []string{mdb.TYPE, kit.Format("bin/mysql -h 127.0.0.1 -P %s", m.Option(tcp.PORT)), nfs.PATH, kit.Path(m.Option(nfs.DIR)) + nfs.PS}, arg...)
 }
 func (s server) List(m *ice.Message, arg ...string) {
 	s.Code.List(m, "", arg...)

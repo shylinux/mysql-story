@@ -47,7 +47,7 @@ func (s sql) Render(m *ice.Message, arg ...string) {
 func (s sql) Engine(m *ice.Message, arg ...string) {
 	ctx.OptionFromConfig(m.Message, aaa.SESS, DATABASE)
 	msg := m.Cmd(mdb.SELECT, ice.GetTypeKey(s.Client), "", mdb.HASH, m.OptionSimple(aaa.SESS), kit.Dict(ice.MSG_FIELDS, "username,password,host,port"))
-	s.Code.Xterm(m, []string{mdb.TYPE, kit.Format("%s -h%s -P%s -u%s -p%s %s", MYSQL,
+	s.Code.Xterm(m, "", []string{mdb.TYPE, kit.Format("%s -h%s -P%s -u%s -p%s %s", MYSQL,
 		msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD), m.Option(DATABASE)),
 		mdb.NAME, m.Option(DATABASE),
 	}, arg...)

@@ -13,7 +13,7 @@ type server struct {
 }
 
 func (s server) Build(m *ice.Message, arg ...string) { s.Code.Build(m); s.Code.Order(m) }
-func (s server) Xterm(m *ice.Message, arg ...string) { s.Code.Xterm(m, SQLITE3, arg...) }
+func (s server) Xterm(m *ice.Message, arg ...string) { s.Code.Xterm(m, "", SQLITE3, arg...) }
 func (s server) List(m *ice.Message, arg ...string)  { s.Code.Source(m, "", arg...) }
 
 func init() { ice.CodeCtxCmd(server{}) }

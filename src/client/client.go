@@ -92,7 +92,7 @@ func (s Client) Script(m *ice.Message, arg ...string) {
 	ctx.ProcessField(m.Message, ice.GetTypeKey(sql{}), []string{m.Option(aaa.SESS), m.Option(DATABASE)}, arg...)
 }
 func (s Client) Xterm(m *ice.Message, arg ...string) {
-	s.Code.Xterm(m, func() []string {
+	s.Code.Xterm(m, "", func() []string {
 		msg := m.Cmd(mdb.SELECT, ice.GetTypeKey(s), "", mdb.HASH, m.OptionSimple(aaa.SESS), kit.Dict(ice.MSG_FIELDS, "username,password,host,port"))
 		return []string{mdb.TYPE, kit.Format("%s -h%s -P%s -u%s -p%s %s",
 			MYSQL, msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD), m.Option(DATABASE)),
