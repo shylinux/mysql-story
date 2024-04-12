@@ -1,6 +1,4 @@
 ~web
-	space icons "src/studio/mysql.png"
 	space main desktop
-	serve main desktop
 ~ssh
 	source local.shy
