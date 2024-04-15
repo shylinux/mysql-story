@@ -14,6 +14,6 @@ import (
 	_ "shylinux.com/x/mysql-story/src/studio"
 )
 
-func init() { ice.Info.NodeIcon = "src/studio/mysql.png" }
-
 func main() { print(ice.Run()) }
+
+func init() { ice.Info.NodeIcon = "src/studio/mysql.png" }
