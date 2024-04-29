@@ -6,6 +6,8 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/mdb"
 	kit "shylinux.com/x/toolkits"
+
+	_ "shylinux.com/x/go-sql-mysql"
 )
 
 type Driver struct {

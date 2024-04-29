@@ -1,48 +1,62 @@
-(function() { const DATABASE = "database", TABLE = "table"
+(function() {
+const DATABASE = "database", TABLE = "table"
 Volcanos(chat.ONIMPORT, {
-	_init: function(can, msg) { can.onmotion.clear(can), can.ui = can.onappend.layout(can)
-		can.db._hash = can.misc.SearchHash(can), can.onimport._session(can, msg, can.ui.project)
-		can.sup.onimport._field = function(msg) { can.onimport._plugin(can, msg) }
+	_init: function(can, msg) {
+		can.ui = can.onappend.layout(can), can.onimport._project(can, msg)
 	},
-	_item: function(can, msg, target, cb, key, opts, stack, nick) {
-		if (stack && stack.length > 0) { target = can.onimport.itemlist(can, [], function() {}, function() {}, target) }
-		var _select; msg.Table(function(value) { value.nick = nick? nick(value): value[key], can.base.Copy(value, opts)
-			var _target = can.onimport.item(can, value, function(event) { _target._list || cb(event, value, _target) }, null, target);
-			(!_select || can.base.beginWith(can.db._hash, stack.concat(value[key]))) && (_select = _target)
-		}), _select && _select.click()
+	_project: function(can, msg) { var _select
+		msg.Table(function(value) {
+			var target = can.onimport.item(can, value, function(event, value, show) {
+				show == undefined && can.run(event, [value.sess], function(msg) {
+					can.onimport._database(can, msg, value.sess, target)
+				})
+			}); _select = _select||target, value.sess == can.db.hash[0] && (_select = target)
+		}), _select.click()
 	},
-	_session: function(can, msg, target) {
-		can.onimport._item(can, msg, target, function(event, value, target) {
-			can.run(event, [value.sess], function(msg) { can.onimport._database(can, msg, target, value.sess) })
-		}, aaa.SESS, {}, [], function(value) { return `${value.sess}(${value.host}:${value.port})` })
+	_database: function(can, msg, sess, target) {
+		can.onimport.itemlist(can, msg.Table(function(value, index) { value.nick = value.database
+			value._select = sess == can.db.hash[0] && value.database == can.db.hash[1]
+			return value
+		}), function(event, value, show) { var target = event.currentTarget
+			show == undefined && can.run(event, [sess, value.database], function(msg) {
+				can.onimport._table(can, msg, sess, value.database, target)
+			})
+		}, function() {
+
+		}, target)
 	},
-	_database: function(can, msg, target, sess) {
-		can.onimport._item(can, msg, target, function(event, value, target) {
-			can.run(event, [sess, value.database], function(msg) { can.onimport._table(can, msg, target, sess, value.database) })
-		}, DATABASE, {sess: sess}, [sess])
+	_table: function(can, msg, sess, database, target) {
+		can.onimport.itemlist(can, msg.Table(function(value, index) { value.nick = `${value.table}(${value.total})`
+			value._select = sess == can.db.hash[0] && database == can.db.hash[1] && value.table == can.db.hash[2]
+			return value
+		}), function(event, value) { if (value._tabs) { return value._tabs.click() }
+			value._tabs = can.onimport._content(can, [sess, database, value.table, "query"], {index: "web.code.mysql.query", args: [sess, database, value.table]}, event.currentTarget)
+		}, function() {
+
+		}, target)
 	},
-	_table: function(can, msg, target, sess, database) {
-		can.onimport._item(can, msg, target, function(event, value, target) { if (value._tabs) { return value._tabs.click() }
-			value.title = [sess, database, value.table].join(nfs.PT), value._tabs = can.onimport.tabs(can, [value], function() {
-				can.db.current = value, can.misc.SearchHash(can, sess, database, value.table)
-				if (can.onmotion.cache(can, function() { return [sess, database, value.table].join(nfs.DF) }, can.ui.content)) { return can.onimport.layout(can) }
-				can.onappend.plugin(can, {index: "web.code.mysql.query", args: [sess, database, value.table]}, function(sub) {
-					value._sub = sub, sub.onexport.output = function() { can.onimport.layout(can) }
-				}, can.ui.content)
-			}, function() {})
-		}, TABLE, {sess: sess, database: database}, [sess, database], function(value) { return `${value.table} ${value.total}`})
-	},
-	_plugin: function(can, msg) { msg.Table(function(value) {
-		value.nick = value.index, value._tabs = can.onimport.tabs(can, [value], function() { can.db.current = value
-			if (can.onmotion.cache(can, function() { return value.index }, can.ui.content)) { return can.onimport.layout(can) }
-			can.onappend.plugin(can, value, function(sub) {
-				value._sub = sub, sub.onexport.output = function() { can.onimport.layout(can) }
-				sub.onexport.title = function(_, title) { can.page.Select(can, value._tabs, html.SPAN_NAME, function(target) { target.innerHTML = title }) }
+	_content: function(can, keys, meta, target) {
+		return can.onimport.tabs(can, [{nick: keys.join(".")}], function() { can.onexport.hash(can, keys)
+			can.page.Select(can, can.ui.project, html.DIV_ITEM, function(target) {
+				can.page.ClassList.del(can, target, html.SELECT)
+			})
+			for (var p = target; p; p = p.parentNode.previousElementSibling) {
+				can.page.ClassList.add(can, p, html.SELECT)
+			}
+			if (can.onmotion.cache(can, function(save, load) {
+				save({
+					_content_plugin: can.ui._content_plugin,
+				}), load(keys.join("."), function(bak) {
+					can.ui._content_plugin = bak._content_plugin
+				}); return keys.join(".")
+			}, can.ui.content)) { return }
+			can.onappend.plugin(can, meta, function(sub) { can.ui._content_plugin = sub
+				can.onimport.layout(can)
 			}, can.ui.content)
-		})
-	}) },
+		}, function() {})
+	},
 	layout: function(can) { can.ui.layout(can.ConfHeight(), can.ConfWidth(), 0, function(height, width) {
-		var sub = can.db.current && can.db.current._sub; sub && sub.onimport.size(sub, height-40, width-40, false)
-	}) },
+		can.ui._content_plugin && can.ui._content_plugin.onimport.size(can.ui._content_plugin, height-40, width-40, false)
+	})},
 }, [""])
 })()

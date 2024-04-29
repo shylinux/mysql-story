@@ -3,17 +3,17 @@ package sqlite
 import (
 	"strings"
 
-	_ "github.com/mattn/go-sqlite3"
-
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/mdb"
 	"shylinux.com/x/icebergs/base/nfs"
 	"shylinux.com/x/mysql-story/src/client"
 	kit "shylinux.com/x/toolkits"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Client struct {
-	list string `name:"list path tbl_name id auto" help:"数据库" icon:"sqlite.png"`
+	list string `name:"list path tbl_name id auto" icon:"sqlite.png"`
 }
 
 func (s Client) List(m *ice.Message, arg ...string) {
