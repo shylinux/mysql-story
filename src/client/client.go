@@ -1,17 +1,36 @@
 package client
 
 import (
+	"path"
+
 	"shylinux.com/x/ice"
+	"shylinux.com/x/icebergs/base/aaa"
+	"shylinux.com/x/icebergs/base/ctx"
+	"shylinux.com/x/icebergs/base/tcp"
+	kit "shylinux.com/x/toolkits"
 )
 
 type client struct {
 	ice.Hash
 	short  string `data:"sess"`
-	field  string `data:"time,sess,username,password,host,port,driver,database"`
-	create string `name:"create sess*=biz username*=root password*=root host*=127.0.0.1 port*=10001 database*=mysql driver*=mysql"`
+	action string `data:"xterm"`
+	field  string `data:"time,sess,driver,database,host,port,username,password"`
+	create string `name:"create sess*=biz driver*=mysql database*=mysql host*=localhost port*=10001 username*=root password*=root"`
 	list   string `name:"list sess auto"`
 }
 
+func (s client) Xterm(m *ice.Message, arg ...string) {
+	if kit.HasPrefixList(arg, ctx.RUN) {
+		m.ProcessXterm("", "", arg...)
+		return
+	}
+	msg := m.Cmd(s, m.Option(aaa.SESS))
+	database := kit.Select(msg.Append(DATABASE), m.Option(DATABASE))
+	m.ProcessXterm(kit.Format("%s(%s:%s)", m.Option(aaa.SESS), msg.Append(tcp.HOST), msg.Append(tcp.PORT)),
+		kit.Format("%s -h %s -P %s -u %s -p%s %s", path.Join(ice.USR_LOCAL_DAEMON, msg.Append(tcp.PORT), "bin/mysql"),
+			msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD), database), arg...)
+
+}
 func init() { ice.CodeModCmd(client{}) }
 
 type Client struct{ client }

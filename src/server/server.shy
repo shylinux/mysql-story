@@ -5,8 +5,7 @@ section "下载安装"
 refer `https://dev.mysql.com/downloads/mysql/`
 shell linux `
 curl -O https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-linux-glibc2.5-x86_64.tar.gz
-tar xvf mysql-5.6.33-linux-glibc2.5-x86_64.tar.gz
-cd mysql-5.6.33-linux-glibc2.5-x86_64
+tar xvf mysql-5.6.33-linux-glibc2.5-x86_64.tar.gz && cd mysql-5.6.33-linux-glibc2.5-x86_64
 ` darwin `
 curl -O https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-osx10.11-x86_64.tar.gz
 tar xvf mysql-5.6.33-osx10.11-x86_64.tar.gz && cd mysql-5.6.33-osx10.11-x86_64

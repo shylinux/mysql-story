@@ -1,74 +1,34 @@
 {
-  "07e756": {
+  "41de6d6cfb8953c021bbe4ba0701c8a1": {
     "meta": {
       "icon": "usr/icons/Messages.png",
       "index": "web.chat.message",
       "name": "Messages",
-      "time": "2024-04-22 11:59:46.953"
+      "time": "2024-04-29 16:36:53.983"
     }
   },
-  "1f72b4": {
-    "meta": {
-      "icon": "usr/icons/Calendar.png",
-      "index": "web.team.plan",
-      "name": "Calendar",
-      "time": "2024-01-11 00:20:44.685"
-    }
-  },
-  "2e7f9f": {
+  "5daaf223b01f8f3e1bd9287170826fbc": {
     "meta": {
       "icon": "usr/icons/Photos.png",
       "index": "web.wiki.feel",
       "name": "Photos",
-      "time": "2024-01-11 00:20:44.684"
+      "time": "2024-04-29 16:36:53.982"
     }
   },
-  "397302": {
+  "6225eb5bf8a031f750a1b03f810ccc6a": {
     "meta": {
       "icon": "usr/icons/Books.png",
       "index": "web.wiki.word",
       "name": "Books",
-      "time": "2023-12-13 12:02:32.163"
+      "time": "2024-04-29 16:36:53.981"
     }
   },
-  "3f6013": {
+  "8ff922bbcd8ad41cdfc48d3c5163b2ab": {
     "meta": {
       "icon": "usr/icons/Calendar.png",
       "index": "web.team.plan",
       "name": "Calendar",
-      "time": "2023-12-13 12:02:32.163"
-    }
-  },
-  "65e0db": {
-    "meta": {
-      "icon": "src/studio/mysql.png",
-      "index": "web.code.mysql.studio",
-      "name": "mysql",
-      "time": "2023-12-13 12:02:32.339"
-    }
-  },
-  "8d7e63": {
-    "meta": {
-      "icon": "usr/icons/Photos.png",
-      "index": "web.wiki.feel",
-      "name": "Photos",
-      "time": "2023-12-13 12:02:32.163"
-    }
-  },
-  "baeb8f": {
-    "meta": {
-      "icon": "src/sqlite/sqlite.png",
-      "index": "web.code.sqlite.client",
-      "name": "sqlite",
-      "time": "2023-12-13 12:02:32.340"
-    }
-  },
-  "eaee5d": {
-    "meta": {
-      "icon": "usr/icons/Books.png",
-      "index": "web.wiki.word",
-      "name": "Books",
-      "time": "2024-01-11 00:20:44.683"
+      "time": "2024-04-29 16:36:53.983"
     }
   }
 }

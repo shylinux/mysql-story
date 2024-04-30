@@ -40,16 +40,12 @@ func (s server) Start(m *ice.Message, arg ...string) {
 		s.Code.System(m.Spawn(), p, "scripts/mysql_install_db", "--datadir=data")
 		return []string{"--port", path.Base(p)}
 	})
-	m.Sleep3s()
-	m.OptionDefault(aaa.USERNAME, aaa.ROOT, aaa.PASSWORD, kit.HashsUniq())
-	s.Code.System(m, m.Option(cli.CMD_DIR), BIN_MYSQL, "-S", "./data/mysqld.socket", "-u", m.Option(aaa.USERNAME),
-		"-e", kit.Format("set password for %s@%s = password('%s')", m.Option(aaa.USERNAME), tcp.LOCALHOST, m.Option(aaa.PASSWORD)))
-	m.Cmd(s.client, s.client.Create, aaa.SESS, m.Option(tcp.PORT),
-		aaa.USERNAME, m.Option(aaa.USERNAME), aaa.PASSWORD, m.Option(aaa.PASSWORD), tcp.HOST, tcp.LOCALHOST, tcp.PORT, m.Option(tcp.PORT),
-		client.DATABASE, MYSQL, client.DRIVER, MYSQL)
+	m.Sleep3s().OptionDefault(aaa.USERNAME, aaa.ROOT, aaa.PASSWORD, kit.HashsUniq())
+	s.Code.System(m, m.Option(cli.CMD_DIR), BIN_MYSQL, "-S", "./data/mysqld.socket", "-u", m.Option(aaa.USERNAME), "-e", kit.Format("set password for %s@%s = password('%s')", m.Option(aaa.USERNAME), tcp.LOCALHOST, m.Option(aaa.PASSWORD)))
+	m.Cmd(s.client, s.client.Create, aaa.SESS, m.Option(tcp.PORT), aaa.USERNAME, m.Option(aaa.USERNAME), aaa.PASSWORD, m.Option(aaa.PASSWORD), tcp.HOST, "127.0.0.1", tcp.PORT, m.Option(tcp.PORT), client.DATABASE, MYSQL, client.DRIVER, MYSQL)
 }
 func (s server) Xterm(m *ice.Message, arg ...string) {
-	m.ProcessXterm(kit.Keys(MYSQL, m.Option(tcp.PORT)), kit.Format("%s/%s -h 127.0.0.1 -P %s", m.Option(nfs.DIR), BIN_MYSQL, m.Option(tcp.PORT)), arg...)
+	m.ProcessXterm(kit.Keys(MYSQL, m.Option(tcp.PORT)), kit.Format("%s/%s -h %s -P %s", m.Option(nfs.DIR), BIN_MYSQL, "127.0.0.1", m.Option(tcp.PORT)), arg...)
 }
 func (s server) List(m *ice.Message, arg ...string) {
 	s.Code.List(m, "", arg...)

@@ -1,0 +1,11 @@
+chapter "client"
+refer `
+MySQL必知必会 https://weread.qq.com/web/reader/929321f0715c01b5929bd3fk16732dc0161679091c5aeb1
+isolate https://learnku.com/articles/40258
+`
+field web.code.mysql.client
+field web.code.mysql.grant
+field web.code.mysql.query
+field web.code.mysql.sql
+spark inner show.sql
+spark inner demo.sql
