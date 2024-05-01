@@ -18,7 +18,7 @@ tar xvf mysql-5.6.33.tar.gz && cd mysql-5.6.33
 
 section "编译安装"
 refer `cmake https://cmake.org/download/`
-shell `
+shell centos `
 yum update -y
 yum install -y wget make cmake gcc gcc-c++ bison.x86_64
 yum install -y libevent-devel.x86_64 openssl-devel.x86_64 ncurses-devel.x86_64

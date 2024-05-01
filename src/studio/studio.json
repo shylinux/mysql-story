@@ -1,0 +1,7 @@
+{
+	"input": {
+		"driver": "驱动",
+		"database": "数据库",
+		"table": "关系表"
+	}
+}

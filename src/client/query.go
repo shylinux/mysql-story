@@ -51,10 +51,11 @@ func (s query) List(m *ice.Message, arg ...string) {
 				db.Query(m, kit.Format("select * from %s %s limit %s offset %s", arg[2], where, m.Option(mdb.LIMIT), m.Option(mdb.OFFEND)))
 				total := db.Total(m, where, arg...)
 				if where != "" || kit.Int(total) > kit.Int(m.Option(mdb.LIMIT)) {
-					m.Action(s.Describe, mdb.PAGE, "where:text=`"+kit.Select("", arg, 6)+"`@key").StatusTimeCountTotal(db.Total(m, where, arg...), mdb.OFFEND, m.Option(mdb.OFFEND), TABLE, arg[2])
+					m.Action(s.Describe, mdb.PAGE, "where:text=`"+kit.Select("", arg, 6)+"`@key")
 				} else {
 					m.Action(s.Describe)
 				}
+				m.StatusTimeCountTotal(db.Total(m, where, arg...), mdb.LIMIT, m.Option(mdb.LIMIT), mdb.OFFEND, m.Option(mdb.OFFEND), TABLE, arg[2])
 			} else {
 				db.Query(m.FieldsSetDetail(), kit.Format("select * from %s where id = %s", arg[2], arg[3]))
 			}

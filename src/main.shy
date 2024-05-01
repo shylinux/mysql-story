@@ -10,7 +10,3 @@ source server/server.shy
 source client/client.shy
 source studio/studio.shy
 source sqlite/sqlite.shy
-source elasticsearch/elastic.shy
-source clickhouse/clickhouse.shy
-source postgre/client.shy
-source mongo/client.shy

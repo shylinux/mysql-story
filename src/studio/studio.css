@@ -8,4 +8,3 @@ $output fieldset.web.code.mysql.query>form.option>div.item.sess { display:none; 
 $output fieldset.web.code.mysql.query>form.option>div.item.database { display:none; }
 $output fieldset.web.code.mysql.query>form.option>div.item.table { display:none; }
 $output fieldset.web.code.mysql.query>div.action>div.item.where input { width:var(--project-width); }
-$output fieldset.web.code.mysql.query>div.action>div.item.icons.state { display:none; }

@@ -16,6 +16,9 @@ type server struct {
 	list   string `name:"list"`
 }
 
+func (s server) Init(m *ice.Message, arg ...string) {
+	m.PackageCreateSource(SQLITE3, "", "sqlite.png")
+}
 func (s server) Build(m *ice.Message, arg ...string) {
 	s.Code.Build(m)
 	s.Code.Order(m)

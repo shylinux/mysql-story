@@ -11,6 +11,6 @@ import (
 func main() { print(ice.Run()) }
 
 func init() {
-	ice.Info.NodeIcon = "src/studio/mysql.png"
+	ice.Info.NodeIcon = "src/studio/studio.png"
 	ice.Info.NodeMain = "web.code.mysql.studio"
 }

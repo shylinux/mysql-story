@@ -1,0 +1,11 @@
+{
+	"query": "查询",
+	"input": {
+		"driver": "驱动",
+		"database": "数据库",
+		"table": "关系表",
+		"limit": "分页",
+		"offend": "偏移",
+		"where": "查询条件"
+	}
+}

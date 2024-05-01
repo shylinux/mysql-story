@@ -10,7 +10,7 @@ import (
 	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
 
-	client "shylinux.com/x/mysql-story/src/client"
+	"shylinux.com/x/mysql-story/src/client"
 )
 
 const (
@@ -30,6 +30,9 @@ type server struct {
 	start   string `name:"start port*=10001 username password"`
 }
 
+func (s server) Init(m *ice.Message, arg ...string) {
+	m.PackageCreateBinary(MYSQL)
+}
 func (s server) Build(m *ice.Message, arg ...string) {
 	s.Code.Build(m, "", func(p string) {
 		s.Code.System(m, p, "cmake", "./", "-DCMAKE_INSTALL_PREFIX=_install", "-DDEFAULT_COLLATION=utf8_general_ci", "-DDEFAULT_CHARSET=utf8", "-DEXTRA_CHARSETS=all")
