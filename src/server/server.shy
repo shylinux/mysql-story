@@ -4,6 +4,7 @@ field web.code.mysql.server
 section "下载安装"
 refer `https://dev.mysql.com/downloads/mysql/`
 shell linux `
+sudo yum install libncurses*
 curl -O https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-linux-glibc2.5-x86_64.tar.gz
 tar xvf mysql-5.6.33-linux-glibc2.5-x86_64.tar.gz && cd mysql-5.6.33-linux-glibc2.5-x86_64
 ` darwin `
@@ -78,4 +79,8 @@ section "处理错误"
 shell `
 # [ERROR] Can't read from messagefile '/usr/share/mysql/english/errmsg.sys'
 cp share/english/errmsg.sys /usr/share/mysql/errmsg.sys
+`
+shell `
+# error while loading shared libraries: libncurses.so.5: cannot open shared object file: No such file
+sudo yum install libncurses*
 `
