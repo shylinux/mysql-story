@@ -6,7 +6,6 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/mdb"
-	"shylinux.com/x/icebergs/base/tcp"
 	kit "shylinux.com/x/toolkits"
 )
 
@@ -18,11 +17,10 @@ const (
 )
 
 type query struct {
-	ice.Hash
-	client Client
-	short  string `data:"where"`
-	field  string `data:"time,where"`
-	list   string `name:"list sess database table id auto"`
+	client
+	short string `data:"where"`
+	field string `data:"time,where"`
+	list  string `name:"list sess database table id auto"`
 }
 
 func (s query) List(m *ice.Message, arg ...string) {
@@ -71,11 +69,6 @@ func (s query) Describe(m *ice.Message, arg ...string) {
 }
 
 func init() { ice.CodeModCmd(query{}) }
-
-func (s query) open(m *ice.Message, sess string, db string, cb func(*Driver)) {
-	msg := m.Cmd(s.client, sess)
-	Open(m, msg.Append(DRIVER), kit.Format("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4", msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD), msg.Append(tcp.HOST), msg.Append(tcp.PORT), kit.Select(msg.Append(DATABASE), db)), cb)
-}
 
 type Query struct{ query }
 

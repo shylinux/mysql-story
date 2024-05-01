@@ -17,10 +17,29 @@ Volcanos(chat.ONIMPORT, {
 		can.onimport.itemlist(can, msg.Table(function(value, index) { value.icon = icon.database, value.nick = value.database
 			value._select = sess == can.db.hash[0] && value.database == can.db.hash[1]
 			return value
-		}), function(event, value, show) { var target = event.currentTarget
+		}), function(event, value, show, target) {
 			show == undefined && can.run(event, [sess, value.database], function(msg) {
 				can.onimport._table(can, msg, sess, value.database, target)
 			})
+		}, function() {}, target)
+		can.onimport.itemlist(can, [{icon: "bi bi-person-lock", nick: "_grant", _select: sess == can.db.hash[0] && "_grant" == can.db.hash[1]}], function(event, value, show, target) {
+			can.onimport._content(can, [sess, "_grant"], {index: "web.code.mysql.grant", args: [sess]}, target, value)
+		}, function() {}, target)
+		can.onimport.itemlist(can, [{icon: icon.xterm, nick: "_shell", _select: sess == can.db.hash[0] && "_shell" == can.db.hash[1]}], function(event, value, show, target) {
+			can.onimport._content(can, [sess, "_shell"], {index: "web.code.mysql.shell", args: [sess], style: html.OUTPUT}, target, value)
+		}, function() {}, target)
+		can.onimport.itemlist(can, [{icon: icon.path, nick: "_script", _select: sess == can.db.hash[0] && "_script" == can.db.hash[1]}], function(event, value, show, target) {
+			show == undefined && can.run(event, [nfs.SCRIPT, sess, nfs.SRC], function(msg) {
+				can.onimport._script(can, msg, sess, target)
+			})
+		}, function() {}, target)
+	},
+	_script: function(can, msg, sess, target) {
+		can.onimport.itemlist(can, msg.Table(function(value, index) { value.icon = icon.file, value.nick = value.file
+			value._select = sess == can.db.hash[0] && "_script" == can.db.hash[1] && value.file == can.db.hash[2]
+			return value
+		}), function(event, value, show, target) {
+			can.onimport._content(can, [sess, "_script", value.file], {index: "web.code.mysql.script", args: [sess, nfs.SRC, value.file]}, target, value)
 		}, function() {
 
 		}, target)
@@ -29,14 +48,14 @@ Volcanos(chat.ONIMPORT, {
 		can.onimport.itemlist(can, msg.Table(function(value, index) { value.icon = icon.table, value.nick = `${value.table}(${value.total})`
 			value._select = sess == can.db.hash[0] && database == can.db.hash[1] && value.table == can.db.hash[2]
 			return value
-		}), function(event, value) { var target = event.currentTarget; if (target._tabs) { return target._tabs.click() }
-			target._tabs = can.onimport._content(can, [sess, database, value.table, "query"], {index: "web.code.mysql.query", args: [sess, database, value.table]}, event.currentTarget)
+		}), function(event, value, show, target) {
+			can.onimport._content(can, [sess, database, value.table, "query"], {index: "web.code.mysql.query", args: [sess, database, value.table]}, target, value)
 		}, function() {
 
 		}, target)
 	},
-	_content: function(can, keys, meta, target) { var key = keys.join("."), _icon = icon.table; can.base.endWith(meta.index, code.XTERM) && (_icon = icon.xterm)
-		return can.onimport.tabs(can, [{icon: _icon, nick: can.core.Keys(keys.slice(1, 3)), title: key}], function() { can.onexport.hash(can, keys)
+	_content: function(can, keys, meta, target, value) { if (target._tabs) { return target._tabs.click() } var key = keys.join(".")
+		return target._tabs = can.onimport.tabs(can, [{icon: value.icon, nick: can.core.Keys(keys.slice(1, 3)), title: key}], function() { can.onexport.hash(can, keys)
 			target && can.page.Select(can, can.ui.project, html.DIV_ITEM, function(target) { can.page.ClassList.del(can, target, html.SELECT) })
 			for (var p = target; p; p = p.parentNode.previousElementSibling) { can.page.ClassList.add(can, p, html.SELECT) }
 			if (can.onmotion.cache(can, function(save, load) { save({_content_plugin: can.ui._content_plugin})

@@ -1,3 +1,4 @@
+CREATE DATABASE demo;
 USE demo;
 
 CREATE TABLE IF NOT EXISTS user (

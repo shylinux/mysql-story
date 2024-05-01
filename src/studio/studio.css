@@ -3,6 +3,10 @@ $option div.item.database { display:none; }
 $option div.item.table { display:none; }
 $project div.list { border-left:var(--disable-fg-color) dashed 1px; }
 $project div.item i { margin-right:var(--input-margin); }
+$output fieldset.web.code.mysql.script>form.option div.item.text { display:none; }
+$output fieldset.web.code.mysql.script>form.option { display:none; }
+$output fieldset.web.code.mysql.shell>form.option { display:none; }
+$output fieldset.web.code.mysql.grant>form.option>div.item.sess { display:none; }
 $output fieldset.web.code.mysql.query>form.option>div.item.delete { display:none; }
 $output fieldset.web.code.mysql.query>form.option>div.item.sess { display:none; }
 $output fieldset.web.code.mysql.query>form.option>div.item.database { display:none; }

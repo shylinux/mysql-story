@@ -31,7 +31,13 @@ func (s client) Xterm(m *ice.Message, arg ...string) {
 			msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD), database), arg...)
 
 }
+
 func init() { ice.CodeModCmd(client{}) }
+
+func (s client) open(m *ice.Message, sess string, db string, cb func(*Driver)) {
+	msg := m.Cmd(s, sess)
+	Open(m, msg.Append(DRIVER), kit.Format("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4", msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD), msg.Append(tcp.HOST), msg.Append(tcp.PORT), kit.Select(msg.Append(DATABASE), db)), cb)
+}
 
 type Client struct{ client }
 

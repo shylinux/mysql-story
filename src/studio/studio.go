@@ -8,7 +8,8 @@ import (
 type studio struct {
 	query  client.Query
 	client client.Client
-	tools  string `data:"web.code.mysql.server"`
+	script client.Script
+	tools  string `data:"web.code.mysql.server,web.code.mysql.client"`
 	create string `name:"create sess*=biz driver*=mysql database*=mysql host*=127.0.0.1 port*=10001 username*=root password*=root"`
 	list   string `name:"list refresh" icon:"studio.png"`
 }
@@ -17,6 +18,7 @@ func (s studio) Inputs(m *ice.Message, arg ...string) { m.Cmdy(s.client, m.Actio
 func (s studio) Create(m *ice.Message, arg ...string) { m.Cmdy(s.client, m.ActionKey(), arg) }
 func (s studio) Remove(m *ice.Message, arg ...string) { m.Cmdy(s.client, m.ActionKey(), arg) }
 func (s studio) Xterm(m *ice.Message, arg ...string)  { m.Cmdy(s.client, m.ActionKey(), arg) }
+func (s studio) Script(m *ice.Message, arg ...string) { m.Cmdy(s.script, arg) }
 func (s studio) List(m *ice.Message, arg ...string) {
 	if m.Cmdy(s.query, arg); m.Length() == 0 {
 		m.EchoInfoButton("please create sess", s.Create)
