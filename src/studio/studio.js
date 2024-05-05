@@ -56,8 +56,10 @@ Volcanos(chat.ONIMPORT, {
 	},
 	_content: function(can, keys, meta, target, value) { if (target._tabs) { return target._tabs.click() } var key = keys.join(".")
 		return target._tabs = can.onimport.tabs(can, [{icon: value.icon, nick: can.core.Keys(keys.slice(1, 3)), title: key}], function() { can.onexport.hash(can, keys)
+
 			target && can.page.Select(can, can.ui.project, html.DIV_ITEM, function(target) { can.page.ClassList.del(can, target, html.SELECT) })
 			for (var p = target; p; p = p.parentNode.previousElementSibling) { can.page.ClassList.add(can, p, html.SELECT) }
+
 			if (can.onmotion.cache(can, function(save, load) { save({_content_plugin: can.ui._content_plugin})
 				load(key, function(bak) { can.ui._content_plugin = bak._content_plugin }); return key
 			}, can.ui.content)) { return can.onimport.layout(can) }
