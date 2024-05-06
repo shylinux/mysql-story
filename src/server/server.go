@@ -55,3 +55,7 @@ func (s server) List(m *ice.Message, arg ...string) {
 }
 
 func init() { ice.CodeModCmd(server{}) }
+
+type Server struct{ server }
+
+func init() { ice.CodeModCmd(Server{}) }
