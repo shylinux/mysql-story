@@ -3,6 +3,7 @@ $option div.item.database { display:none; }
 $option div.item.table { display:none; }
 $project div.list { border-left:var(--disable-fg-color) dashed 1px; }
 $project div.item i { margin-right:var(--input-margin); }
+$content>fieldset.story>div.action>div.item.state.icons.full { display:none; }
 $output fieldset.web.code.mysql.script>form.option div.item.text { display:none; }
 $output fieldset.web.code.mysql.script>form.option { display:none; }
 $output fieldset.web.code.mysql.shell>form.option { display:none; }
