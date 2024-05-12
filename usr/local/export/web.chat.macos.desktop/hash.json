@@ -23,14 +23,6 @@
       "time": "2024-04-29 16:36:53.981"
     }
   },
-  "786d348e95448121dc5b7387e22e4fff": {
-    "meta": {
-      "icon": "src/sqlite/sqlite.png",
-      "index": "web.code.sqlite.client",
-      "name": "sqlite",
-      "time": "2024-05-05 11:17:16.716"
-    }
-  },
   "8ff922bbcd8ad41cdfc48d3c5163b2ab": {
     "meta": {
       "icon": "usr/icons/Calendar.png",
