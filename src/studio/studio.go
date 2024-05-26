@@ -3,6 +3,7 @@ package client
 import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/ctx"
+	"shylinux.com/x/icebergs/base/web"
 	"shylinux.com/x/mysql-story/src/client"
 	"shylinux.com/x/mysql-story/src/server"
 	kit "shylinux.com/x/toolkits"
@@ -17,6 +18,11 @@ type studio struct {
 	list   string `name:"list refresh" icon:"studio.png"`
 }
 
+func (s studio) Init(m *ice.Message, arg ...string) {
+	web.AddPortalProduct(m.Message, "DB Studio", `
+一款网页版的数据库工作台，用来管理数据库。
+`, 10.0)
+}
 func (s studio) Inputs(m *ice.Message, arg ...string) { m.Cmdy(s.client, m.ActionKey(), arg) }
 func (s studio) Create(m *ice.Message, arg ...string) { m.Cmdy(s.client, m.ActionKey(), arg) }
 func (s studio) Remove(m *ice.Message, arg ...string) { m.Cmdy(s.client, m.ActionKey(), arg) }
