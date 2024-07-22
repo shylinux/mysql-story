@@ -3,8 +3,8 @@ module shylinux.com/x/mysql-story
 go 1.13
 
 require (
-	shylinux.com/x/ice v1.5.36
-	shylinux.com/x/icebergs v1.9.37
+	shylinux.com/x/ice v1.5.40
+	shylinux.com/x/icebergs v1.9.38
 	shylinux.com/x/toolkits v1.0.12
 )
 
