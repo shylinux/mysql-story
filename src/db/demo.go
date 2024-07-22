@@ -4,7 +4,7 @@ import (
 	"shylinux.com/x/ice"
 )
 
-type demoTable struct {
+type Demo struct {
 	Model
 	Name string
 }
@@ -12,11 +12,11 @@ type demo struct {
 	Table
 	driver string `data:"sqlite"`
 	create string `name:"create name*"`
-	list   string `name:"list id auto" help:"示例"`
+	list   string `name:"list id auto"`
 }
 
 func (s demo) Init(m *ice.Message, arg ...string) {
-	s.Table.Init(m, &demoTable{})
+	s.Table.Init(m, &Demo{})
 }
 
 func init() { ice.Cmd(prefixKey(), demo{}) }

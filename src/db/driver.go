@@ -11,6 +11,7 @@ import (
 const (
 	DRIVER = "driver"
 	DSN    = "dsn"
+	DB     = "db"
 )
 
 type driver struct {
@@ -27,11 +28,7 @@ func (s driver) Init(m *ice.Message, cb func() Dialector) {
 	var db *gorm.DB
 	m.Cmd(s, mdb.CREATE, DRIVER, m.CommandKey(), ctx.INDEX, m.PrefixKey(), kit.Dict(mdb.TARGET, func() *gorm.DB {
 		defer m.Lock(m.PrefixKey())()
-		if db != nil {
-			return db
-		}
-		db, err = gorm.Open(cb())
-		m.Warn(err)
+		kit.If(db == nil, func() { db, err = gorm.Open(cb()); m.Warn(err) })
 		return db
 	}))
 }
@@ -39,11 +36,11 @@ func (s driver) Select(m *ice.Message, arg ...string) {
 	m.Optionv(mdb.TARGET, mdb.HashSelectTarget(m.Message, kit.Hashs(arg[0]), nil))
 }
 
-func init() { ice.Cmd(prefixKey(), driver{}) }
-
 type Driver struct{ driver }
 
-func openDB(m *ice.Message, d string) *gorm.DB {
-	msg := m.Cmd(driver{}, mdb.SELECT, d)
-	return msg.Optionv(mdb.TARGET).(func() *gorm.DB)()
+func init() { ice.Cmd(prefixKey(), driver{}) }
+func init() { ice.Cmd(prefixKey(), Driver{}) }
+
+func (s Driver) open(m *ice.Message, d string) *gorm.DB {
+	return m.Cmd(s, s.Select, d).Optionv(mdb.TARGET).(func() *gorm.DB)()
 }
