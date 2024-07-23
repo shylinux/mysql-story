@@ -20,7 +20,7 @@ func (s Database) Migrate(m *ice.Message, arg ...string) {
 	driver := kit.Select(m.Config(DRIVER), arg, 0)
 	mdb.HashSelectValue(m.Message, func(value ice.Map) {
 		db := s.Driver.open(m, kit.Select(driver, value[DRIVER]))
-		db.AutoMigrate(mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET]))
+		m.Warn(db.AutoMigrate(mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET])))
 		mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(DB), db)
 	})
 }

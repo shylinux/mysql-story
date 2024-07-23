@@ -24,14 +24,12 @@ const (
 
 type Model struct {
 	gorm.Model
-	Creator  string
-	Operator string
+	Creator  string `gorm:"type:char(32)"`
+	Operator string `gorm:"type:char(32)"`
 }
 type ModelWithUID struct {
-	gorm.Model
-	Creator  string
-	Operator string
-	Uid      string `gorm:"uniqueIndex"`
+	Model
+	Uid string `gorm:"type:char(32);uniqueIndex"`
 }
 
 type Table struct {
@@ -61,13 +59,15 @@ func (s Table) Open(m *ice.Message) *gorm.DB {
 		defer m.Event("web.code.db.migrate.before")("web.code.db.migrate.after")
 		m.Cmd(s.db, s.db.Migrate)
 	})
-	return m.Configv(DB).(*gorm.DB).Model(m.Configv(MODEL))
+	db, ok := m.Optionv(DB).(*gorm.DB)
+	kit.If(!ok, func() { db, ok = m.Configv(DB).(*gorm.DB) })
+	return db.Model(m.Configv(MODEL))
 }
 func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
 	return s.Open(m).Where("id = ?", id)
 }
 func (s Table) Create(m *ice.Message, arg ...string) {
-	data := kit.Dict(CREATED_AT, time.Now().Unix(), CREATOR, m.Option(ice.MSG_USERNAME), arg)
+	data := kit.Dict(CREATED_AT, time.Now().UTC().Format(ice.MOD_TIME), CREATOR, m.Option(ice.MSG_USERNAME), arg)
 	switch model := m.Configv(MODEL).(type) {
 	case interface{ OnCreate(ice.Map) }:
 		model.OnCreate(data)
@@ -85,10 +85,10 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 	}
 }
 func (s Table) Modify(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(UPDATED_AT, time.Now().Unix(), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
+	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(UPDATED_AT, time.Now(), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
 }
 func (s Table) Remove(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, time.Now().Unix(), arg)).Error)
+	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, time.Now(), arg)).Error)
 }
 func (s Table) Select(m *ice.Message, arg ...string) {
 	args := kit.List()
@@ -131,9 +131,10 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) {
 			case []byte:
 				m.Push(head[i], string(v))
 			default:
+				m.Debug("what %v %v", head[i], v)
 				if v != nil && kit.IsIn(head[i], CREATED_AT, UPDATED_AT) {
-					if t, e := time.Parse("2006-01-02 15:04:05 -0700 UTC", kit.Format("%v", v)); !m.Warn(e) {
-						v = t.Local().Format("2006-01-02 15:04:05")
+					if t, e := time.Parse("2006-01-02 15:04:05.000 -0700 UTC", kit.Format("%v", v)); e == nil {
+						v = t.Local().Format(ice.MOD_TIME)
 					}
 				}
 				m.Push(head[i], kit.Format("%v", v))
