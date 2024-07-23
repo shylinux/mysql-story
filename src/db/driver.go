@@ -2,6 +2,7 @@ package db
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/ctx"
 	"shylinux.com/x/icebergs/base/mdb"
@@ -28,7 +29,10 @@ func (s driver) Init(m *ice.Message, cb func() Dialector) {
 	var db *gorm.DB
 	m.Cmd(s, mdb.CREATE, DRIVER, m.CommandKey(), ctx.INDEX, m.PrefixKey(), kit.Dict(mdb.TARGET, func() *gorm.DB {
 		defer m.Lock(m.PrefixKey())()
-		kit.If(db == nil, func() { db, err = gorm.Open(cb()); m.Warn(err) })
+		kit.If(db == nil, func() {
+			db, err = gorm.Open(cb(), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+			m.Warn(err)
+		})
 		return db
 	}))
 }

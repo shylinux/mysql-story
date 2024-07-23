@@ -1,7 +1,9 @@
 package db
 
 import (
+	"reflect"
 	"sync"
+	"time"
 
 	"gorm.io/gorm"
 	"shylinux.com/x/ice"
@@ -17,12 +19,19 @@ const (
 	DELETED_AT = "deleted_at"
 	CREATOR    = "creator"
 	OPERATOR   = "operator"
+	UID        = "uid"
 )
 
 type Model struct {
 	gorm.Model
 	Creator  string
 	Operator string
+}
+type ModelWithUID struct {
+	gorm.Model
+	Creator  string
+	Operator string
+	Uid      string `gorm:"uniqueIndex"`
 }
 
 type Table struct {
@@ -42,7 +51,6 @@ func (s Table) AfterMigrate(m *ice.Message, arg ...string) {
 }
 func (s Table) Init(m *ice.Message, t ice.Any) *ice.Message {
 	m.Cmd(s.db, s.db.Create, ctx.INDEX, m.PrefixKey(), DRIVER, m.Config(DRIVER), kit.Dict(mdb.TARGET, t))
-	m.TransInput(CREATED_AT, "创建时间", UPDATED_AT, "更新时间", DELETED_AT, "删除时间", CREATOR, "创建人", OPERATOR, "操作人")
 	return m
 }
 
@@ -59,30 +67,46 @@ func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
 	return s.Open(m).Where("id = ?", id)
 }
 func (s Table) Create(m *ice.Message, arg ...string) {
-	res := s.Open(m).Create(kit.Dict(CREATED_AT, m.Time(), CREATOR, m.Option(ice.MSG_USERNAME), arg))
-	m.Warn(res.Error)
+	data := kit.Dict(CREATED_AT, time.Now().Unix(), CREATOR, m.Option(ice.MSG_USERNAME), arg)
+	switch model := m.Configv(MODEL).(type) {
+	case interface{ OnCreate(ice.Map) }:
+		model.OnCreate(data)
+	default:
+		if data[UID] == nil {
+			t := reflect.TypeOf(model)
+			kit.If(t.Kind() == reflect.Ptr, func() { t = t.Elem() })
+			if _, ok := t.FieldByName("Uid"); ok {
+				data[UID] = kit.HashsUniq()
+			}
+		}
+	}
+	if !m.Warn(s.Open(m).Create(data).Error) {
+		m.Echo(kit.Select(kit.Format(data[mdb.ID]), data[UID]))
+	}
 }
 func (s Table) Modify(m *ice.Message, arg ...string) {
-	res := s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(UPDATED_AT, m.Time(), OPERATOR, m.Option(ice.MSG_USERNAME), arg))
-	m.Warn(res.Error)
+	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(UPDATED_AT, time.Now().Unix(), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
 }
 func (s Table) Remove(m *ice.Message, arg ...string) {
-	res := s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, m.Time(), arg))
-	m.Warn(res.Error)
+	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, time.Now().Unix(), arg)).Error)
 }
-func (s Table) Select(m *ice.Message, stm string, arg ...ice.Any) {
-	s.Show(m, s.Open(m).Where(stm, arg...))
+func (s Table) Select(m *ice.Message, arg ...string) {
+	args := kit.List()
+	kit.For(arg[1:], func(v string) { args = append(args, v) })
+	s.Show(m, s.Open(m).Where(arg[0], args...))
 }
 func (s Table) List(m *ice.Message, arg ...string) {
-	if len(arg) > 0 {
+	if len(arg) == 0 {
+		s.Show(m, s.Open(m))
+		m.Action(s.Create)
+	} else {
 		m.FieldsSetDetail()
 		s.Show(m, s.OpenID(m, arg[0]))
-	} else {
-		m.Action(s.Create)
-		s.Show(m, s.Open(m))
 	}
 }
 func (s Table) Show(m *ice.Message, db *gorm.DB) {
+	fields := kit.Simple(m.Optionv(mdb.SELECT))
+	kit.If(len(fields) > 0, func() { db = db.Select(fields) })
 	rows, err := db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30"))).Rows()
 	if m.Warn(err) {
 		return
@@ -107,6 +131,11 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) {
 			case []byte:
 				m.Push(head[i], string(v))
 			default:
+				if v != nil && kit.IsIn(head[i], CREATED_AT, UPDATED_AT) {
+					if t, e := time.Parse("2006-01-02 15:04:05 -0700 UTC", kit.Format("%v", v)); !m.Warn(e) {
+						v = t.Local().Format("2006-01-02 15:04:05")
+					}
+				}
 				m.Push(head[i], kit.Format("%v", v))
 			}
 		}
