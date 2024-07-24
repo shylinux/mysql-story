@@ -78,10 +78,14 @@ func (s Table) Modify(m *ice.Message, arg ...string) {
 func (s Table) Remove(m *ice.Message, arg ...string) {
 	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, s.now(m), arg)).Error)
 }
+func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
+	s.Open(m).Where(arg[0], kit.TransArgs(arg[1:])...).Updates(data)
+}
+func (s Table) Delete(m *ice.Message, arg ...string) {
+	s.Open(m).Where(arg[0], kit.TransArgs(arg[1:])...).Delete(m.Configv(MODEL))
+}
 func (s Table) Select(m *ice.Message, arg ...string) {
-	args := kit.List()
-	kit.For(arg[1:], func(v string) { args = append(args, v) })
-	s.Show(m, s.Open(m).Where(arg[0], args...))
+	s.Show(m, s.Open(m).Where(arg[0], kit.TransArgs(arg[1:])...))
 }
 func (s Table) List(m *ice.Message, arg ...string) {
 	if len(arg) == 0 {
