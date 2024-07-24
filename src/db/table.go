@@ -2,12 +2,10 @@ package db
 
 import (
 	"reflect"
-	"sync"
 	"time"
 
 	"gorm.io/gorm"
 	"shylinux.com/x/ice"
-	"shylinux.com/x/icebergs/base/ctx"
 	"shylinux.com/x/icebergs/base/mdb"
 	kit "shylinux.com/x/toolkits"
 )
@@ -33,32 +31,19 @@ type ModelWithUID struct {
 }
 
 type Table struct {
-	models Models
-	db     Database
-	list   string `name:"list id auto"`
-
+	database      database
 	beforeMigrate string `name:"beforeMigrate" event:"web.code.db.migrate.before"`
 	afterMigrate  string `name:"afterMigrate" event:"web.code.db.migrate.after"`
+	list          string `name:"list id auto"`
 }
 
 func (s Table) BeforeMigrate(m *ice.Message, arg ...string) {
-	s.Init(m, s.models.Bind(m, kit.Select(m.CommandKey(), m.Config("models"))))
+	s.database.Register(m)
 }
 func (s Table) AfterMigrate(m *ice.Message, arg ...string) {
-
 }
-func (s Table) Init(m *ice.Message, t ice.Any) *ice.Message {
-	m.Cmd(s.db, s.db.Create, ctx.INDEX, m.PrefixKey(), DRIVER, m.Config(DRIVER), kit.Dict(mdb.TARGET, t))
-	return m
-}
-
-var once = &sync.Once{}
-
 func (s Table) Open(m *ice.Message) *gorm.DB {
-	once.Do(func() {
-		defer m.Event("web.code.db.migrate.before")("web.code.db.migrate.after")
-		m.Cmd(s.db, s.db.Migrate)
-	})
+	s.database.OnceMigrate(m)
 	db, ok := m.Optionv(DB).(*gorm.DB)
 	kit.If(!ok, func() { db, ok = m.Configv(DB).(*gorm.DB) })
 	return db.Model(m.Configv(MODEL))
@@ -66,8 +51,11 @@ func (s Table) Open(m *ice.Message) *gorm.DB {
 func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
 	return s.Open(m).Where("id = ?", id)
 }
+func (s Table) now(m *ice.Message) string {
+	return time.Now().UTC().Format("2006-01-02 15:04:05")
+}
 func (s Table) Create(m *ice.Message, arg ...string) {
-	data := kit.Dict(CREATED_AT, time.Now().UTC().Format(ice.MOD_TIME), CREATOR, m.Option(ice.MSG_USERNAME), arg)
+	data := kit.Dict(CREATED_AT, s.now(m), CREATOR, m.Option(ice.MSG_USERNAME), arg)
 	switch model := m.Configv(MODEL).(type) {
 	case interface{ OnCreate(ice.Map) }:
 		model.OnCreate(data)
@@ -85,10 +73,10 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 	}
 }
 func (s Table) Modify(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(UPDATED_AT, time.Now(), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
+	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(UPDATED_AT, s.now(m), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
 }
 func (s Table) Remove(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, time.Now(), arg)).Error)
+	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, s.now(m), arg)).Error)
 }
 func (s Table) Select(m *ice.Message, arg ...string) {
 	args := kit.List()
@@ -131,10 +119,9 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) {
 			case []byte:
 				m.Push(head[i], string(v))
 			default:
-				m.Debug("what %v %v", head[i], v)
 				if v != nil && kit.IsIn(head[i], CREATED_AT, UPDATED_AT) {
-					if t, e := time.Parse("2006-01-02 15:04:05.000 -0700 UTC", kit.Format("%v", v)); e == nil {
-						v = t.Local().Format(ice.MOD_TIME)
+					if t, e := time.Parse("2006-01-02 15:04:05 -0700 UTC", kit.Format("%v", v)); e == nil {
+						v = t.Local().Format("2006-01-02 15:04:05")
 					}
 				}
 				m.Push(head[i], kit.Format("%v", v))

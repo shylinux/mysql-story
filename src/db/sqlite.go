@@ -16,7 +16,7 @@ func (s Sqlite) Init(m *ice.Message, arg ...string) {
 }
 func (s Sqlite) BeforeMigrate(m *ice.Message, arg ...string) {
 	p := path.Join("var/db/", m.PrefixKey()+".db")
-	s.Driver.Init(m, func() Dialector { m.MkdirAll(path.Dir(p)); return sqlite.Open(p) })
+	s.Driver.Register(m, func() Dialector { m.MkdirAll(path.Dir(p)); return sqlite.Open(p) })
 }
 
 func init() { ice.Cmd(prefixKey(), Sqlite{}) }
