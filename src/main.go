@@ -6,7 +6,6 @@ import (
 	_ "shylinux.com/x/mysql-story/src/db"
 	_ "shylinux.com/x/mysql-story/src/db/mysql"
 	_ "shylinux.com/x/mysql-story/src/server"
-	_ "shylinux.com/x/mysql-story/src/sqlite"
 	_ "shylinux.com/x/mysql-story/src/studio"
 )
 
