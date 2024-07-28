@@ -24,9 +24,9 @@ type Models struct{ models }
 
 func init() { ice.Cmd(prefixKey(), Models{}) }
 
-func (s Models) Register(m *ice.Message, target ...ice.Any) {
+func (s Models) Register(m *ice.Message, domain string, target ...ice.Any) {
 	kit.For(target, func(target ice.Any) {
-		m.Cmd(s, s.Create, mdb.NAME, kit.TypeName(target), ctx.INDEX, m.PrefixKey(), kit.Dict(mdb.TARGET, target))
+		m.Cmd(s, s.Create, mdb.NAME, kit.Keys(domain, kit.TypeName(target)), ctx.INDEX, m.PrefixKey(), kit.Dict(mdb.TARGET, target))
 	})
 }
 func (s Models) Target(m *ice.Message, name string) ice.Any {

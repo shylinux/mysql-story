@@ -19,6 +19,7 @@ const (
 	CREATOR    = "creator"
 	OPERATOR   = "operator"
 	UID        = "uid"
+	NAME       = "name"
 )
 
 type Model struct {
@@ -35,6 +36,7 @@ type Table struct {
 	database      database
 	beforeMigrate string `name:"beforeMigrate" event:"web.code.db.migrate.before"`
 	afterMigrate  string `name:"afterMigrate" event:"web.code.db.migrate.after"`
+	create        string `name:"create name*"`
 	list          string `name:"list id auto"`
 }
 
@@ -43,6 +45,14 @@ func (s Table) BeforeMigrate(m *ice.Message, arg ...string) {
 }
 func (s Table) AfterMigrate(m *ice.Message, arg ...string) {
 }
+func (s Table) Inputs(m *ice.Message, arg ...string) {
+	if strings.HasSuffix(arg[0], "_uid") {
+		m.Optionv(mdb.SELECT, UID, NAME)
+		m.Cmdy(m.Prefix(strings.TrimSuffix(arg[0], "_uid"))).RenameAppend(UID, arg[0])
+		m.DisplayInputKeyNameIconTitle()
+	}
+}
+
 func (s Table) Open(m *ice.Message) *gorm.DB {
 	s.database.OnceMigrate(m)
 	db, ok := m.Optionv(DB).(*gorm.DB)
@@ -76,7 +86,7 @@ func (s Table) Modify(m *ice.Message, arg ...string) {
 func (s Table) Remove(m *ice.Message, arg ...string) {
 	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, s.now(m), arg)).Error)
 }
-func (s Table) List(m *ice.Message, arg ...string) {
+func (s Table) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) == 0 {
 		m.OptionDefault(mdb.ORDER, "id desc")
 		s.Show(m, s.Open(m)).PushAction(s.Remove).Action(s.Create)
@@ -84,6 +94,7 @@ func (s Table) List(m *ice.Message, arg ...string) {
 		m.FieldsSetDetail()
 		s.Show(m, s.OpenID(m, arg[0])).PushAction(s.Remove)
 	}
+	return m
 }
 func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	db := s.Open(m)
@@ -184,7 +195,9 @@ func (s Table) LeftJoin(target ice.Any) string {
 	return kit.Format("left join %s on %s_uid = %s.uid", models, model, models)
 }
 func (s Table) TableName(model string) string {
-	if kit.HasSuffix(model, "s") {
+	if kit.HasSuffix(model, "y") {
+		model = model[:len(model)-1] + "ies"
+	} else if kit.HasSuffix(model, "s") {
 		model = model + "es"
 	} else {
 		model = model + "s"
