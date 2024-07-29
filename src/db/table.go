@@ -38,6 +38,7 @@ type Table struct {
 	afterMigrate  string `name:"afterMigrate" event:"web.code.db.migrate.after"`
 	create        string `name:"create name*"`
 	list          string `name:"list id auto"`
+	find          string `name:"find uid*"`
 }
 
 func (s Table) BeforeMigrate(m *ice.Message, arg ...string) {
@@ -81,7 +82,7 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 	}
 }
 func (s Table) Modify(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(UPDATED_AT, s.now(m), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
+	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(ice.Map{UPDATED_AT: s.now(m), OPERATOR: m.Option(ice.MSG_USERNAME), arg[0]: arg[1]}).Error)
 }
 func (s Table) Remove(m *ice.Message, arg ...string) {
 	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, s.now(m), arg)).Error)
@@ -95,6 +96,9 @@ func (s Table) List(m *ice.Message, arg ...string) *ice.Message {
 		s.Show(m, s.OpenID(m, arg[0])).PushAction(s.Remove)
 	}
 	return m
+}
+func (s Table) Find(m *ice.Message, arg ...string) {
+	s.Select(m, arg...)
 }
 func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	db := s.Open(m)
@@ -121,7 +125,9 @@ func (s Table) Delete(m *ice.Message, arg ...string) {
 func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	fields := kit.Simple(m.Optionv(mdb.SELECT))
 	kit.If(len(fields) > 0, func() { db = db.Select(fields) })
-	kit.If(m.Option(mdb.ORDER), func() { db.Order(m.Option(mdb.ORDER)) })
+	kit.If(m.Option(mdb.ORDER), func() {
+		db = db.Order(kit.Join(kit.Simple(m.Optionv(mdb.ORDER)), ","))
+	})
 	rows, err := db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30"))).Rows()
 	if m.Warn(err) {
 		return m
@@ -146,7 +152,7 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 			case []byte:
 				m.Push(head[i], string(v))
 			default:
-				if v != nil && kit.IsIn(head[i], CREATED_AT, UPDATED_AT) {
+				if v != nil && (kit.IsIn(head[i], CREATED_AT, UPDATED_AT) || kit.HasSuffix(head[i], "_time")) {
 					if t, e := time.Parse("2006-01-02 15:04:05 -0700 UTC", kit.Format("%v", v)); e == nil {
 						v = t.Local().Format("2006-01-02 15:04:05")
 					}
@@ -156,6 +162,10 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 		}
 	}
 	return m
+}
+func (s Table) Orders(m *ice.Message, arg ...ice.Any) Table {
+	m.Optionv(mdb.ORDER, arg...)
+	return s
 }
 func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 	for i, v := range arg {
