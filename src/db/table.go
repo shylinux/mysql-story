@@ -20,6 +20,10 @@ const (
 	OPERATOR   = "operator"
 	UID        = "uid"
 	NAME       = "name"
+	TYPE       = "type"
+	ROLE       = "role"
+	STATUS     = "status"
+	ADDRESS    = "address"
 )
 
 type Model struct {
@@ -115,7 +119,7 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	s.Show(m, s.Where(m, db, arg...))
 	return m
 }
-func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
+func (s Table) Update(m *ice.Message, data ice.Any, arg ...string) {
 	m.Warn(s.Where(m, s.Open(m), arg...).Updates(data).Error)
 }
 func (s Table) Delete(m *ice.Message, arg ...string) {
@@ -149,6 +153,8 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 				continue
 			}
 			switch v = *(v.(*ice.Any)); v := v.(type) {
+			case nil:
+				m.Push(head[i], "")
 			case []byte:
 				m.Push(head[i], string(v))
 			default:
@@ -171,9 +177,11 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 	for i, v := range arg {
 		switch v := v.(type) {
 		case string:
-			if strings.HasSuffix(v, "_name") {
-				arg[i] = s.TableName(strings.TrimSuffix(v, "_name")) + ".name AS " + v
-			}
+			kit.For([]string{NAME, TYPE, ROLE, STATUS, ADDRESS}, func(suffix string) {
+				if !strings.Contains(v, " ") && strings.HasSuffix(v, "_"+suffix) {
+					arg[i] = s.TableName(strings.TrimSuffix(v, "_"+suffix)) + "." + suffix + " AS " + v
+				}
+			})
 		}
 	}
 	m.Optionv(mdb.SELECT, arg...)
@@ -184,6 +192,9 @@ func (s Table) Tables(m *ice.Message, target ...ice.Any) Table {
 	return s
 }
 func (s Table) Where(m *ice.Message, db *gorm.DB, arg ...string) *gorm.DB {
+	if len(arg) == 0 {
+		return db
+	}
 	if len(arg) == 1 || strings.Contains(arg[0], "?") {
 		db = db.Where(arg[0], kit.TransArgs(arg[1:])...)
 	} else {
