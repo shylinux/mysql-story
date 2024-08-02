@@ -31,6 +31,12 @@ func (s client) Xterm(m *ice.Message, arg ...string) {
 			msg.Append(tcp.HOST), msg.Append(tcp.PORT), msg.Append(aaa.USERNAME), msg.Append(aaa.PASSWORD), database), arg...)
 
 }
+func (s client) List(m *ice.Message, arg ...string) {
+	s.Hash.List(m, arg...)
+	if len(arg) == 1 {
+		m.EchoScript(kit.Format("CREATE DATABASE IF NOT EXISTS %s CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;", m.Append(DATABASE)))
+	}
+}
 
 func init() { ice.CodeModCmd(client{}) }
 

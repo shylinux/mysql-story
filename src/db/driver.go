@@ -21,6 +21,9 @@ type driver struct {
 	list  string `name:"list name auto" help:"驱动"`
 }
 
+func (s driver) Exit(m *ice.Message, arg ...string) {
+	m.Confv(m.PrefixKey(), mdb.HASH, "")
+}
 func (s driver) Select(m *ice.Message, arg ...string) {
 	m.Optionv(mdb.TARGET, s.Hash.Target(m, arg[0], nil))
 }
@@ -40,19 +43,18 @@ func init() { ice.Cmd(prefixKey(), Driver{}) }
 
 type Dialector interface{ gorm.Dialector }
 
-func (s Driver) Register(m *ice.Message, cb func() Dialector, arg ...string) {
-	var err error
-	var db *gorm.DB
-	m.Cmd(s, s.Create, mdb.NAME, kit.Select(m.CommandKey(), arg, 0), ctx.INDEX, m.PrefixKey(), kit.Dict(mdb.TARGET, func() *gorm.DB {
+func (s Driver) Register(m *ice.Message, cb func(string) Dialector, arg ...string) {
+	var dbs = map[string]*gorm.DB{}
+	m.Cmd(s, s.Create, mdb.NAME, kit.Select(m.CommandKey(), arg, 0), ctx.INDEX, m.PrefixKey(), kit.Dict(mdb.TARGET, func(domain string) *gorm.DB {
 		defer m.Lock()()
-		kit.If(db == nil, func() {
-			db, err = gorm.Open(cb(), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
-			// db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4")
-			m.Warn(err)
+		kit.If(dbs[domain] == nil, func() {
+			if db, err := gorm.Open(cb(domain), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}); !m.Warn(err) {
+				dbs[domain] = db
+			}
 		})
-		return db
+		return dbs[domain]
 	}))
 }
-func (s Driver) Target(m *ice.Message, d string) *gorm.DB {
-	return m.Cmd(s, s.Select, d).Optionv(mdb.TARGET).(func() *gorm.DB)()
+func (s Driver) Target(m *ice.Message, d string, domain string) *gorm.DB {
+	return m.Cmd(s, s.Select, d).Optionv(mdb.TARGET).(func(string) *gorm.DB)(domain)
 }

@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"unicode"
 
 	"gorm.io/gorm"
 	"shylinux.com/x/ice"
@@ -23,8 +24,11 @@ const (
 	TYPE       = "type"
 	ROLE       = "role"
 	STATUS     = "status"
+	AVATAR     = "avatar"
 	ADDRESS    = "address"
 )
+
+type Time time.Time
 
 type Model struct {
 	gorm.Model
@@ -104,10 +108,26 @@ func (s Table) List(m *ice.Message, arg ...string) *ice.Message {
 func (s Table) Find(m *ice.Message, arg ...string) {
 	s.Select(m, arg...)
 }
+func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Message {
+	model := s.ToLower(kit.TypeName(target))
+	list := []string{}
+	m.Table(func(value ice.Maps) { list = kit.AddUniq(list, value[model+"_uid"]) })
+	users := m.CmdMap(target, s.SelectList, UID, list, UID)
+	m.Table(func(value ice.Maps) {
+		user := users[value[model+"_uid"]]
+		kit.For(arg, func(k string) { m.Push("user_"+k, user[k]) })
+	})
+	return m
+}
+func (s Table) SelectList(m *ice.Message, arg ...string) {
+	s.Select(m, kit.Format(`%s in ("%v")`, arg[0], kit.Join(arg[1:], `","`)))
+}
 func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	db := s.Open(m)
 	switch table := m.Optionv(mdb.TABLE).(type) {
 	case []ice.Any:
+		kit.For(table, func(table ice.Any) { db = db.Joins(s.LeftJoin(table)) })
+	case []string:
 		kit.For(table, func(table ice.Any) { db = db.Joins(s.LeftJoin(table)) })
 	case ice.Any:
 		db = db.Joins(s.LeftJoin(table))
@@ -117,6 +137,9 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 		m.ErrorNotImplement(table)
 	}
 	s.Show(m, s.Where(m, db, arg...))
+	if m.PushAction(s.Remove); !m.FieldsIsDetail() {
+		m.Action(s.Create)
+	}
 	return m
 }
 func (s Table) Update(m *ice.Message, data ice.Any, arg ...string) {
@@ -177,7 +200,7 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 	for i, v := range arg {
 		switch v := v.(type) {
 		case string:
-			kit.For([]string{NAME, TYPE, ROLE, STATUS, ADDRESS}, func(suffix string) {
+			kit.For([]string{NAME, TYPE, ROLE, AVATAR, STATUS, ADDRESS}, func(suffix string) {
 				if !strings.Contains(v, " ") && strings.HasSuffix(v, "_"+suffix) {
 					arg[i] = s.TableName(strings.TrimSuffix(v, "_"+suffix)) + "." + suffix + " AS " + v
 				}
@@ -208,14 +231,32 @@ func (s Table) LeftJoin(target ice.Any) string {
 	model, models := "", ""
 	switch target := target.(type) {
 	case string:
+		if strings.Contains(target, " ") {
+			return target
+		}
 		model = target
 	default:
 		model = kit.TypeName(target)
+		model = s.ToLower(model)
 	}
 	models = s.TableName(model)
 	return kit.Format("left join %s on %s_uid = %s.uid", models, model, models)
 }
+func (s Table) ToLower(model string) string {
+	list, begin, last := []string{}, 0, false
+	for i, v := range model {
+		if i == len(model)-1 {
+			list = append(list, strings.ToLower(model[begin:]))
+		} else if unicode.IsUpper(v) && last {
+			list, begin = append(list, strings.ToLower(model[begin:i])), i
+		}
+		last = unicode.IsLower(v)
+	}
+	model = kit.Join(list, "_")
+	return model
+}
 func (s Table) TableName(model string) string {
+	model = s.ToLower(model)
 	if kit.HasSuffix(model, "y") {
 		model = model[:len(model)-1] + "ies"
 	} else if kit.HasSuffix(model, "s") {
@@ -227,6 +268,15 @@ func (s Table) TableName(model string) string {
 }
 func (s Table) now(m *ice.Message) string {
 	return time.Now().UTC().Format("2006-01-02 15:04:05")
+}
+func (s Table) Key(target ice.Any, k string) string {
+	return kit.Keys(s.TableName(kit.TypeName(target)), k)
+}
+func (s Table) AS(from, to string) string {
+	return from + " AS " + to
+}
+func (s Table) Desc(k string) string {
+	return k + " DESC"
 }
 
 func prefixKey() string { return kit.Keys("web.code", kit.PathName(-1), kit.FileName(-1)) }
