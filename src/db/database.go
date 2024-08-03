@@ -15,7 +15,7 @@ type database struct {
 	Driver Driver
 	driver string `data:"mysql"`
 	short  string `data:"index"`
-	field  string `data:"time,index,model,driver"`
+	field  string `data:"time,index,models,domain,driver"`
 	list   string `name:"list index auto" help:"存储"`
 }
 
@@ -25,8 +25,7 @@ func (s database) Exit(m *ice.Message, arg ...string) {
 func (s database) Migrate(m *ice.Message, arg ...string) {
 	driver := kit.Select(m.Config(DRIVER), arg, 0)
 	mdb.HashSelectValue(m.Message, func(value ice.Map) {
-		domain := kit.Select("", kit.Split(kit.Format(value[ctx.INDEX]), "."), 2)
-		db := s.Driver.Target(m, kit.Select(driver, value[DRIVER]), domain)
+		db := s.Driver.Target(m, kit.Select(driver, value[DRIVER]), kit.Format(value[DOMAIN]))
 		m.Warn(db.AutoMigrate(mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET])))
 		mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(DB), db)
 	})
@@ -38,10 +37,10 @@ func (s database) List(m *ice.Message, arg ...string) {
 func init() { ice.Cmd(prefixKey(), database{}) }
 
 func (s database) Register(m *ice.Message) {
-	models := kit.Select(m.CommandKey(), m.Config("models"))
-	domain := kit.Select("", kit.Split(m.PrefixKey(), "."), 2)
+	models := kit.Select(m.CommandKey(), m.Config(MODELS))
+	domain := kit.Select(kit.Select("", kit.Split(m.PrefixKey(), "."), 2), m.Config(DOMAIN))
 	target := s.Models.Target(m, kit.Keys(domain, models))
-	m.Cmd(s, s.Create, ctx.INDEX, m.PrefixKey(), "model", kit.Keys(domain, models), DRIVER, m.Config(DRIVER), kit.Dict(mdb.TARGET, target))
+	m.Cmd(s, s.Create, ctx.INDEX, m.PrefixKey(), MODELS, kit.Keys(domain, models), DOMAIN, domain, DRIVER, m.Config(DRIVER), kit.Dict(mdb.TARGET, target))
 }
 func (s database) OnceMigrate(m *ice.Message) {
 	once.Do(func() {

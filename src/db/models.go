@@ -47,7 +47,7 @@ func (s Models) Init(m *ice.Message, arg ...string) {
 	}
 }
 func CmdModels(db string, tables ...ice.Any) {
-	ice.Cmd(kit.Keys("web.code.db", kit.ModName(-1), kit.ModPath(-1), "models"), Models{
+	ice.Cmd(kit.Keys("web.code.db", kit.ModName(-1), kit.ModPath(-1), MODELS), Models{
 		Database: kit.Select(kit.Split(kit.ModPath(-1), "./", "./")[0], db), Tables: tables,
 	})
 }

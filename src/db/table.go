@@ -115,12 +115,15 @@ func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Me
 	users := m.CmdMap(target, s.SelectList, UID, list, UID)
 	m.Table(func(value ice.Maps) {
 		user := users[value[model+"_uid"]]
-		kit.For(arg, func(k string) { m.Push("user_"+k, user[k]) })
+		kit.For(arg, func(k string) { m.Push(model+"_"+k, user[k]) })
 	})
 	return m
 }
 func (s Table) SelectList(m *ice.Message, arg ...string) {
 	s.Select(m, kit.Format(`%s in ("%v")`, arg[0], kit.Join(arg[1:], `","`)))
+}
+func (s Table) SelectDetail(m *ice.Message, arg ...string) *ice.Message {
+	return s.Select(m.FieldsSetDetail(), arg...)
 }
 func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	db := s.Open(m)
@@ -137,6 +140,9 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 		m.ErrorNotImplement(table)
 	}
 	s.Show(m, s.Where(m, db, arg...))
+	m.Set(ice.MSG_OPTION, mdb.TABLE)
+	m.Set(ice.MSG_OPTION, mdb.SELECT)
+	m.Set(ice.MSG_OPTION, mdb.ORDER)
 	if m.PushAction(s.Remove); !m.FieldsIsDetail() {
 		m.Action(s.Create)
 	}
@@ -194,6 +200,10 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 }
 func (s Table) Orders(m *ice.Message, arg ...ice.Any) Table {
 	m.Optionv(mdb.ORDER, arg...)
+	return s
+}
+func (s Table) FieldsWithCreatedAT(m *ice.Message, target ice.Any, arg ...ice.Any) Table {
+	s.Fields(m, append([]ice.Any{s.Key(target, CREATED_AT), s.Key(target, UID)}, arg...)...).Orders(m, s.Desc(CREATED_AT))
 	return s
 }
 func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
@@ -268,6 +278,9 @@ func (s Table) TableName(model string) string {
 }
 func (s Table) now(m *ice.Message) string {
 	return time.Now().UTC().Format("2006-01-02 15:04:05")
+}
+func (s Table) Keys(target ice.Any, k string) string {
+	return s.ToLower(kit.TypeName(target)) + "_" + k
 }
 func (s Table) Key(target ice.Any, k string) string {
 	return kit.Keys(s.TableName(kit.TypeName(target)), k)

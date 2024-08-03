@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	MODELS = "models"
+	DOMAIN = "domain"
 	DRIVER = "driver"
 	DB     = "db"
 )
