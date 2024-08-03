@@ -29,6 +29,7 @@ func (s models) List(m *ice.Message, arg ...string) {
 			list[db] = true
 		}
 	})
+	m.EchoScript("./bin/mysql -S ./data/mysqld.socket -u root -p")
 }
 
 func init() { ice.Cmd(prefixKey(), models{}) }
