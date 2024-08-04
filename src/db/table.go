@@ -131,7 +131,9 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	case []ice.Any:
 		kit.For(table, func(table ice.Any) { db = db.Joins(s.LeftJoin(table)) })
 	case []string:
-		kit.For(table, func(table ice.Any) { db = db.Joins(s.LeftJoin(table)) })
+		kit.For(table, func(table string) { db = db.Joins(s.LeftJoin(table)) })
+	case string:
+		db = db.Joins(s.LeftJoin(table))
 	case ice.Any:
 		db = db.Joins(s.LeftJoin(table))
 	case nil:
