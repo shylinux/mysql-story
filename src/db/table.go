@@ -204,8 +204,12 @@ func (s Table) Orders(m *ice.Message, arg ...ice.Any) Table {
 	m.Optionv(mdb.ORDER, arg...)
 	return s
 }
+
 func (s Table) FieldsWithCreatedAT(m *ice.Message, target ice.Any, arg ...ice.Any) Table {
-	s.Fields(m, append([]ice.Any{s.Key(target, CREATED_AT), s.Key(target, UID)}, arg...)...).Orders(m, s.Desc(CREATED_AT))
+	s.Fields(m, append([]ice.Any{
+		s.AS(s.Key(target, CREATED_AT), CREATED_AT),
+		s.AS(s.Key(target, UID), UID),
+	}, arg...)...).Orders(m, s.Desc(CREATED_AT))
 	return s
 }
 func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
