@@ -11,6 +11,7 @@ import (
 
 type database struct {
 	ice.Hash
+	models models
 	Models Models
 	Driver Driver
 	driver string `data:"mysql"`
@@ -44,6 +45,7 @@ func (s database) Register(m *ice.Message) {
 }
 func (s database) OnceMigrate(m *ice.Message) {
 	once.Do(func() {
+		m.Spawn(ice.Maps{ice.MSG_DAEMON: ""}).Cmd(s.models, s.models.AutoCreate)
 		defer m.Event("web.code.db.migrate.before")("web.code.db.migrate.after")
 		m.Cmd(s, s.Migrate)
 	})

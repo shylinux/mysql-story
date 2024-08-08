@@ -45,6 +45,7 @@ type Table struct {
 	beforeMigrate string `name:"beforeMigrate" event:"web.code.db.migrate.before"`
 	afterMigrate  string `name:"afterMigrate" event:"web.code.db.migrate.after"`
 	create        string `name:"create name*"`
+	rename        string `name:"rename name*"`
 	list          string `name:"list id auto"`
 	find          string `name:"find uid*"`
 }
@@ -109,13 +110,23 @@ func (s Table) Find(m *ice.Message, arg ...string) {
 	s.Select(m, arg...)
 }
 func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Message {
+	kit.If(len(arg) == 0, func() { arg = append(arg, NAME) })
+	m.Set(ice.MSG_OPTION, mdb.TABLE)
+	m.Set(ice.MSG_OPTION, mdb.SELECT)
+	m.Set(ice.MSG_OPTION, mdb.ORDER)
 	model := s.ToLower(kit.TypeName(target))
 	list := []string{}
 	m.Table(func(value ice.Maps) { list = kit.AddUniq(list, value[model+"_uid"]) })
 	users := m.CmdMap(target, s.SelectList, UID, list, UID)
 	m.Table(func(value ice.Maps) {
 		user := users[value[model+"_uid"]]
-		kit.For(arg, func(k string) { m.Push(model+"_"+k, user[k]) })
+		kit.For(arg, func(k string) {
+			if kit.HasSuffix(k, "_uid") {
+				m.Push(k, user[k])
+			} else {
+				m.Push(model+"_"+k, user[k])
+			}
+		})
 	})
 	return m
 }
@@ -152,6 +163,9 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 }
 func (s Table) Update(m *ice.Message, data ice.Any, arg ...string) {
 	m.Warn(s.Where(m, s.Open(m), arg...).Updates(data).Error)
+}
+func (s Table) Rename(m *ice.Message, arg ...string) {
+	s.Update(m, kit.Dict(NAME, m.Option(NAME)), UID, m.Option(UID))
 }
 func (s Table) Delete(m *ice.Message, arg ...string) {
 	res := s.Where(m, s.Open(m), arg...).Delete(m.Configv(MODEL))
@@ -204,7 +218,10 @@ func (s Table) Orders(m *ice.Message, arg ...ice.Any) Table {
 	m.Optionv(mdb.ORDER, arg...)
 	return s
 }
-
+func (s Table) Limit(m *ice.Message, limit int) Table {
+	m.Option(mdb.LIMIT, limit)
+	return s
+}
 func (s Table) FieldsWithCreatedAT(m *ice.Message, target ice.Any, arg ...ice.Any) Table {
 	s.Fields(m, append([]ice.Any{
 		s.AS(s.Key(target, CREATED_AT), CREATED_AT),

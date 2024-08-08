@@ -40,6 +40,8 @@ func (s models) AutoCreate(m *ice.Message, arg ...string) {
 	})
 	cmds = append(cmds, "quit")
 	args := kit.Split(m.Config(ctx.CMDS))
+	m.Info("auto create %v", args)
+	m.Info("auto create %v", cmds)
 	if p, e := xterm.Command(m.Message, m.Config(nfs.PATH), args[0], args[1:]...); !m.Warn(e) {
 		xterm.PushShell(m.Message, p, cmds, func(res string) {
 			m.Option(ice.MSG_TITLE, m.ActionKey())

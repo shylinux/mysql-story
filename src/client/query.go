@@ -23,12 +23,30 @@ type query struct {
 	list  string `name:"list sess database table id auto"`
 }
 
+func (s query) Drop(m *ice.Message, arg ...string) {
+	s.open(m, m.Option(aaa.SESS), kit.Select(MYSQL, m.Option(DATABASE)), func(db *Driver) {
+		if m.Option(TABLE) != "" {
+			db.Query(m, "drop table "+m.Option(TABLE)).ToLowerAppend()
+		} else if m.Option(DATABASE) != "" {
+			if !kit.IsIn(m.Option(DATABASE), "mysql", "information_schema", "performance_schema") {
+				db.Query(m, "drop database "+m.Option(DATABASE)).ToLowerAppend()
+			}
+		}
+	})
+}
 func (s query) List(m *ice.Message, arg ...string) {
 	if len(arg) == 0 || arg[0] == "" {
-		m.Cmdy(s.client, arg)
+		m.Cmdy(s.client, arg).PushAction()
 	} else if len(arg) == 1 || arg[1] == "" {
 		s.open(m, arg[0], kit.Select("", arg, 1), func(db *Driver) {
 			db.Query(m, "show databases").ToLowerAppend()
+		})
+		m.Table(func(value ice.Maps) {
+			if !kit.IsIn(value[DATABASE], "mysql", "information_schema", "performance_schema") {
+				m.PushButton(s.Drop)
+			} else {
+				m.PushButton()
+			}
 		})
 	} else if len(arg) == 2 || arg[2] == "" {
 		s.open(m, arg[0], arg[1], func(db *Driver) {
@@ -39,6 +57,9 @@ func (s query) List(m *ice.Message, arg ...string) {
 				m.Push(mdb.FIELD, strings.Join(msg.Appendv(mdb.FIELD), ice.FS))
 			})
 		})
+		if !kit.IsIn(arg[1], "mysql", "information_schema", "performance_schema") {
+			m.PushAction(s.Drop)
+		}
 	} else {
 		where := kit.Select("", arg, 6)
 		kit.If(where, func() { s.Hash.Create(m.Spawn(), WHERE, where); where = kit.JoinWord(WHERE, where) })
