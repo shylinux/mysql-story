@@ -1,12 +1,14 @@
 package db
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 	"time"
 	"unicode"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/mdb"
 	kit "shylinux.com/x/toolkits"
@@ -57,7 +59,7 @@ func (s Table) AfterMigrate(m *ice.Message, arg ...string) {
 }
 func (s Table) Inputs(m *ice.Message, arg ...string) {
 	if strings.HasSuffix(arg[0], "_uid") {
-		m.Optionv(mdb.SELECT, UID, NAME)
+		s.Fields(m, UID, NAME)
 		m.Cmdy(m.Prefix(strings.TrimSuffix(arg[0], "_uid"))).RenameAppend(UID, arg[0])
 		m.DisplayInputKeyNameIconTitle()
 	}
@@ -67,7 +69,7 @@ func (s Table) Open(m *ice.Message) *gorm.DB {
 	s.database.OnceMigrate(m)
 	db, ok := m.Optionv(DB).(*gorm.DB)
 	kit.If(!ok, func() { db, ok = m.Configv(DB).(*gorm.DB) })
-	return db.Model(m.Configv(MODEL))
+	return db.Model(m.Configv(MODEL)).WithContext(m)
 }
 func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
 	return s.Open(m).Where("id = ?", id)
@@ -111,10 +113,8 @@ func (s Table) Find(m *ice.Message, arg ...string) {
 }
 func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Message {
 	kit.If(len(arg) == 0, func() { arg = append(arg, NAME) })
-	m.Set(ice.MSG_OPTION, mdb.TABLE)
-	m.Set(ice.MSG_OPTION, mdb.SELECT)
-	m.Set(ice.MSG_OPTION, mdb.ORDER)
 	model := s.ToLower(kit.TypeName(target))
+	s.ClearOption(m)
 	list := []string{}
 	m.Table(func(value ice.Maps) { list = kit.AddUniq(list, value[model+"_uid"]) })
 	users := m.CmdMap(target, s.SelectList, UID, list, UID)
@@ -132,6 +132,9 @@ func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Me
 }
 func (s Table) SelectList(m *ice.Message, arg ...string) {
 	s.Select(m, kit.Format(`%s in ("%v")`, arg[0], kit.Join(arg[1:], `","`)))
+}
+func (s Table) SelectForUpdate(m *ice.Message, arg ...string) *ice.Message {
+	return s.Select(m.Options("query_option", "FOR UPDATE"), arg...)
 }
 func (s Table) SelectDetail(m *ice.Message, arg ...string) *ice.Message {
 	return s.Select(m.FieldsSetDetail(), arg...)
@@ -152,24 +155,47 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	default:
 		m.ErrorNotImplement(table)
 	}
+	if m.Option("query_option") == "FOR UPDATE" {
+		db = db.Clauses(clause.Locking{Strength: "UPDATE"})
+	}
 	s.Show(m, s.Where(m, db, arg...))
-	m.Set(ice.MSG_OPTION, mdb.TABLE)
-	m.Set(ice.MSG_OPTION, mdb.SELECT)
-	m.Set(ice.MSG_OPTION, mdb.ORDER)
 	if m.PushAction(s.Remove); !m.FieldsIsDetail() {
 		m.Action(s.Create)
 	}
+	s.ClearOption(m)
 	return m
 }
+
 func (s Table) Update(m *ice.Message, data ice.Any, arg ...string) {
 	m.Warn(s.Where(m, s.Open(m), arg...).Updates(data).Error)
 }
-func (s Table) Rename(m *ice.Message, arg ...string) {
+func (s Table) Rename(m *ice.Message, arg ...string) *ice.Message {
 	s.Update(m, kit.Dict(NAME, m.Option(NAME)), UID, m.Option(UID))
+	return m
 }
-func (s Table) Delete(m *ice.Message, arg ...string) {
+func (s Table) Delete(m *ice.Message, arg ...string) *ice.Message {
 	res := s.Where(m, s.Open(m), arg...).Delete(m.Configv(MODEL))
 	m.Push(mdb.COUNT, res.RowsAffected).Warn(res.Error)
+	return m
+}
+func (s Table) Transaction(m *ice.Message, cb func()) {
+	s.Open(m).Transaction(func(tx *gorm.DB) error {
+		m.Optionv(DB, tx)
+		if cb(); m.IsErr() {
+			return errors.New(m.Result())
+		}
+		return nil
+	})
+	m.Option(DB, "")
+	s.ClearOption(m)
+}
+func (s Table) AddCount(m *ice.Message, key, count, uid string) {
+	s.Exec(m, kit.Format("Update %s set %s = %s + %s where uid = '%s'",
+		s.TableName(kit.TypeName(m.Configv(MODEL))), key, key, count, uid))
+}
+func (s Table) Exec(m *ice.Message, arg ...string) {
+	db := s.Open(m)
+	db.Exec(arg[0])
 }
 func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	fields := kit.Simple(m.Optionv(mdb.SELECT))
@@ -214,12 +240,15 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	}
 	return m
 }
-func (s Table) Orders(m *ice.Message, arg ...ice.Any) Table {
-	m.Optionv(mdb.ORDER, arg...)
-	return s
+func (s Table) ClearOption(m *ice.Message, arg ...string) *ice.Message {
+	m.Set(ice.MSG_OPTION, mdb.TABLE)
+	m.Set(ice.MSG_OPTION, mdb.SELECT)
+	m.Set(ice.MSG_OPTION, mdb.ORDER)
+	m.Set(ice.MSG_OPTION, "query_option")
+	return m
 }
-func (s Table) Limit(m *ice.Message, limit int) Table {
-	m.Option(mdb.LIMIT, limit)
+func (s Table) Tables(m *ice.Message, target ...ice.Any) Table {
+	m.Optionv(mdb.TABLE, target...)
 	return s
 }
 func (s Table) FieldsWithCreatedAT(m *ice.Message, target ice.Any, arg ...ice.Any) Table {
@@ -243,8 +272,12 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 	m.Optionv(mdb.SELECT, arg...)
 	return s
 }
-func (s Table) Tables(m *ice.Message, target ...ice.Any) Table {
-	m.Optionv(mdb.TABLE, target...)
+func (s Table) Orders(m *ice.Message, arg ...ice.Any) Table {
+	m.Optionv(mdb.ORDER, arg...)
+	return s
+}
+func (s Table) Limit(m *ice.Message, limit int) Table {
+	m.Option(mdb.LIMIT, limit)
 	return s
 }
 func (s Table) Where(m *ice.Message, db *gorm.DB, arg ...string) *gorm.DB {
