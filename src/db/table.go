@@ -75,6 +75,12 @@ func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
 	return s.Open(m).Where("id = ?", id)
 }
 func (s Table) Create(m *ice.Message, arg ...string) {
+	for i := 0; i < len(arg); i += 2 {
+		if strings.HasSuffix(arg[i], "_time") {
+			t, _ := time.ParseInLocation("2006-01-02 15:04:05", arg[i+1], time.Local)
+			arg[i+1] = t.UTC().Format("2006-01-02 15:04:05")
+		}
+	}
 	data := kit.Dict(CREATED_AT, s.now(m), CREATOR, m.Option(ice.MSG_USERNAME), arg)
 	switch model := m.Configv(MODEL).(type) {
 	case interface{ OnCreate(ice.Map) }:
@@ -137,7 +143,7 @@ func (s Table) SelectForUpdate(m *ice.Message, arg ...string) *ice.Message {
 	return s.Select(m.Options("query_option", "FOR UPDATE"), arg...)
 }
 func (s Table) SelectDetail(m *ice.Message, arg ...string) *ice.Message {
-	return s.Select(m.FieldsSetDetail(), arg...)
+	return s.Select(m.FieldsSetDetail(), arg...).Action()
 }
 func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	db := s.Open(m)
@@ -159,18 +165,19 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 		db = db.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
 	s.Show(m, s.Where(m, db, arg...))
-	if m.PushAction(s.Remove); !m.FieldsIsDetail() {
+	if !m.FieldsIsDetail() {
 		m.Action(s.Create)
 	}
 	s.ClearOption(m)
+	m.PushAction()
 	return m
 }
 
-func (s Table) Update(m *ice.Message, data ice.Any, arg ...string) {
+func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
 	m.Warn(s.Where(m, s.Open(m), arg...).Updates(data).Error)
 }
 func (s Table) Rename(m *ice.Message, arg ...string) *ice.Message {
-	s.Update(m, kit.Dict(NAME, m.Option(NAME)), UID, m.Option(UID))
+	s.Update(m, kit.Dict(NAME, m.Option(NAME)), arg...)
 	return m
 }
 func (s Table) Delete(m *ice.Message, arg ...string) *ice.Message {
@@ -189,9 +196,9 @@ func (s Table) Transaction(m *ice.Message, cb func()) {
 	m.Option(DB, "")
 	s.ClearOption(m)
 }
-func (s Table) AddCount(m *ice.Message, key, count, uid string) {
+func (s Table) AddCount(m *ice.Message, arg ...string) {
 	s.Exec(m, kit.Format("Update %s set %s = %s + %s where uid = '%s'",
-		s.TableName(kit.TypeName(m.Configv(MODEL))), key, key, count, uid))
+		s.TableName(kit.TypeName(m.Configv(MODEL))), arg[0], arg[0], arg[1], arg[2]))
 }
 func (s Table) Exec(m *ice.Message, arg ...string) {
 	db := s.Open(m)
@@ -241,10 +248,10 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	return m
 }
 func (s Table) ClearOption(m *ice.Message, arg ...string) *ice.Message {
-	m.Set(ice.MSG_OPTION, mdb.TABLE)
-	m.Set(ice.MSG_OPTION, mdb.SELECT)
-	m.Set(ice.MSG_OPTION, mdb.ORDER)
-	m.Set(ice.MSG_OPTION, "query_option")
+	m.Optionv(mdb.TABLE, []string{})
+	m.Optionv(mdb.SELECT, []string{})
+	m.Optionv(mdb.ORDER, []string{})
+	m.Optionv("query_option", []string{})
 	return m
 }
 func (s Table) Tables(m *ice.Message, target ...ice.Any) Table {
