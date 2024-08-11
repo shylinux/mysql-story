@@ -43,7 +43,9 @@ type ModelWithUID struct {
 }
 
 type Table struct {
+	ice.Hash
 	database      database
+	export        string `data:"true"`
 	beforeMigrate string `name:"beforeMigrate" event:"web.code.db.migrate.before"`
 	afterMigrate  string `name:"afterMigrate" event:"web.code.db.migrate.after"`
 	create        string `name:"create name*"`
