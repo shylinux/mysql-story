@@ -44,8 +44,8 @@ type ModelWithUID struct {
 
 type Table struct {
 	ice.Hash
-	database      database
-	export        string `data:"true"`
+	database database
+	// export        string `data:"true"`
 	beforeMigrate string `name:"beforeMigrate" event:"web.code.db.migrate.before"`
 	afterMigrate  string `name:"afterMigrate" event:"web.code.db.migrate.after"`
 	create        string `name:"create name*"`
@@ -99,6 +99,7 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 	if !m.Warn(s.Open(m).Create(data).Error) {
 		m.Echo(kit.Select(kit.Format(data[mdb.ID]), data[UID]))
 	}
+	m.ProcessRefresh()
 }
 func (s Table) Modify(m *ice.Message, arg ...string) {
 	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(ice.Map{UPDATED_AT: s.now(m), OPERATOR: m.Option(ice.MSG_USERNAME), arg[0]: arg[1]}).Error)
@@ -177,6 +178,7 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 
 func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
 	m.Warn(s.Where(m, s.Open(m), arg...).Updates(data).Error)
+	m.ProcessRefresh()
 }
 func (s Table) Rename(m *ice.Message, arg ...string) *ice.Message {
 	s.Update(m, kit.Dict(NAME, m.Option(NAME)), arg...)
@@ -185,6 +187,7 @@ func (s Table) Rename(m *ice.Message, arg ...string) *ice.Message {
 func (s Table) Delete(m *ice.Message, arg ...string) *ice.Message {
 	res := s.Where(m, s.Open(m), arg...).Delete(m.Configv(MODEL))
 	m.Push(mdb.COUNT, res.RowsAffected).Warn(res.Error)
+	m.ProcessRefresh()
 	return m
 }
 func (s Table) Transaction(m *ice.Message, cb func()) {
