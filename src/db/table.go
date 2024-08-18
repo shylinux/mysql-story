@@ -264,6 +264,9 @@ func (s Table) Tables(m *ice.Message, target ...ice.Any) Table {
 	return s
 }
 func (s Table) FieldsWithCreatedAT(m *ice.Message, target ice.Any, arg ...ice.Any) Table {
+	if target == nil || target == "" {
+		target = m.Configv(MODEL)
+	}
 	s.Fields(m, append([]ice.Any{
 		s.AS(s.Key(target, CREATED_AT), CREATED_AT),
 		s.AS(s.Key(target, UID), UID),
