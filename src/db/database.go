@@ -27,7 +27,8 @@ func (s database) Migrate(m *ice.Message, arg ...string) {
 	driver := kit.Select(m.Config(DRIVER), arg, 0)
 	mdb.HashSelectValue(m.Message, func(value ice.Map) {
 		db := s.Driver.Target(m, kit.Select(driver, value[DRIVER]), kit.Format(value[DOMAIN]))
-		m.Warn(db.AutoMigrate(mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET])))
+		m.Info("what migrate %v", value[ctx.INDEX])
+		m.Warn(db.AutoMigrate(mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET])), value[ctx.INDEX])
 		mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(DB), db)
 	})
 }
