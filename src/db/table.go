@@ -341,7 +341,9 @@ func (s Table) TableName(model string) string {
 	if kit.HasSuffix(model, "y") {
 		model = model[:len(model)-1] + "ies"
 	} else if kit.HasSuffix(model, "s") {
-		model = model + "es"
+		if !kit.HasSuffix(model, "os") {
+			model = model + "es"
+		}
 	} else {
 		model = model + "s"
 	}
