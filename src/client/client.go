@@ -16,7 +16,7 @@ type client struct {
 	action string `data:"xterm"`
 	field  string `data:"time,sess,driver,database,host,port,username,password"`
 	create string `name:"create sess*=biz driver*=mysql database*=mysql host*=localhost port*=10001 username*=root password*=root"`
-	list   string `name:"list sess auto"`
+	list   string `name:"list sess auto" help:"存储"`
 }
 
 func (s client) Xterm(m *ice.Message, arg ...string) {
