@@ -202,8 +202,13 @@ func (s Table) Transaction(m *ice.Message, cb func()) {
 	s.ClearOption(m)
 }
 func (s Table) AddCount(m *ice.Message, arg ...string) {
-	s.Exec(m, kit.Format("Update %s set %s = %s + %s where uid = '%s'",
-		s.TableName(kit.TypeName(m.Configv(MODEL))), arg[0], arg[0], arg[1], arg[2]))
+	if len(arg) > 3 {
+		s.Exec(m, kit.Format("UPDATE %s SET %s = %s + %s WHERE uid = '%s' AND %s = %s",
+			s.TableName(kit.TypeName(m.Configv(MODEL))), arg[0], arg[0], arg[1], arg[2], arg[0], arg[3]))
+	} else {
+		s.Exec(m, kit.Format("UPDATE %s SET %s = %s + %s WHERE uid = '%s'",
+			s.TableName(kit.TypeName(m.Configv(MODEL))), arg[0], arg[0], arg[1], arg[2]))
+	}
 }
 func (s Table) Exec(m *ice.Message, arg ...string) {
 	db := s.Open(m)
