@@ -79,8 +79,9 @@ func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
 func (s Table) Create(m *ice.Message, arg ...string) {
 	for i := 0; i < len(arg); i += 2 {
 		if strings.HasSuffix(arg[i], "_time") {
-			t, _ := time.ParseInLocation("2006-01-02 15:04:05", arg[i+1], time.Local)
-			arg[i+1] = t.UTC().Format("2006-01-02 15:04:05")
+			if t, e := time.ParseInLocation("2006-01-02 15:04:05", arg[i+1], time.Local); e == nil {
+				arg[i+1] = t.UTC().Format("2006-01-02 15:04:05")
+			}
 		}
 	}
 	data := kit.Dict(CREATED_AT, s.now(m), CREATOR, m.Option(ice.MSG_USERNAME), arg)
@@ -177,6 +178,13 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 }
 
 func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
+	kit.For(data, func(k string, v string) {
+		if strings.HasSuffix(k, "_time") {
+			if t, e := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local); e == nil {
+				data[k] = t.UTC().Format("2006-01-02 15:04:05")
+			}
+		}
+	})
 	m.Warn(s.Where(m, s.Open(m), arg...).Updates(data).Error)
 	m.ProcessRefresh()
 }
