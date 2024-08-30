@@ -41,6 +41,33 @@ type ModelWithUID struct {
 	Model
 	Uid string `gorm:"type:char(32);uniqueIndex"`
 }
+type ModelWithAuth struct {
+	ModelWithUID
+	AuthUID string `gorm:"type:char(32);index"`
+}
+type ModelUserPlace struct {
+	ModelWithUID
+	UserUID string `gorm:"type:char(32);index"`
+	Role    uint8  `gorm:"default:0"`
+}
+type ModelPlace struct {
+	ModelWithAuth
+	Name string `gorm:"type:varchar(64)"`
+	Type uint8  `gorm:"default:0"`
+	Init uint8  `gorm:"default:0"`
+}
+type ModelStreet struct {
+	ModelWithAuth
+	CityUID string `gorm:"type:char(32);index:idx_city"`
+	Name    string `gorm:"type:varchar(64);index:idx_city"`
+	Info    string
+}
+type ModelContent struct {
+	ModelWithUID
+	UserUID string `gorm:"type:char(32);index"`
+	Title   string `gorm:"type:varchar(64)"`
+	Content string
+}
 
 type Table struct {
 	ice.Hash
@@ -122,11 +149,27 @@ func (s Table) Find(m *ice.Message, arg ...string) {
 	s.Select(m, arg...)
 }
 func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Message {
+	if m.Length() == 0 {
+		return m
+	}
 	kit.If(len(arg) == 0, func() { arg = append(arg, NAME) })
-	model := s.ToLower(kit.TypeName(target))
+	model := ""
+	switch target := target.(type) {
+	case string:
+		model = kit.Select("", kit.Split(target, "."), -1)
+	default:
+		model = s.ToLower(kit.TypeName(target))
+	}
 	s.ClearOption(m)
 	list := []string{}
-	m.Table(func(value ice.Maps) { list = kit.AddUniq(list, value[model+"_uid"]) })
+	m.Table(func(value ice.Maps) {
+		kit.If(value[model+"_uid"], func(v string) {
+			list = kit.AddUniq(list, v)
+		})
+	})
+	if len(list) == 0 {
+		return m
+	}
 	users := m.CmdMap(target, s.SelectList, UID, list, UID)
 	m.Table(func(value ice.Maps) {
 		user := users[value[model+"_uid"]]
