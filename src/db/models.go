@@ -27,7 +27,7 @@ func (s models) Select(m *ice.Message, arg ...string) {
 	m.Optionv(mdb.TARGET, s.Hash.Target(m, arg[0], nil))
 }
 func (s models) List(m *ice.Message, arg ...string) {
-	s.Hash.List(m, arg...).Action(s.Xterm, "AutoCreate")
+	s.Hash.List(m, arg...).Action(s.Xterm, s.AutoCreate)
 }
 func (s models) AutoCreate(m *ice.Message, arg ...string) {
 	cmds := []string{}

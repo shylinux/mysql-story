@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -19,9 +20,10 @@ const (
 	CREATED_AT = "created_at"
 	UPDATED_AT = "updated_at"
 	DELETED_AT = "deleted_at"
-	CREATOR    = "creator"
 	OPERATOR   = "operator"
+	CREATOR    = "creator"
 	UID        = "uid"
+	ICON       = "icon"
 	NAME       = "name"
 	TYPE       = "type"
 	ROLE       = "role"
@@ -34,8 +36,8 @@ type Time time.Time
 
 type Model struct {
 	gorm.Model
-	Creator  string `gorm:"type:char(32)"`
 	Operator string `gorm:"type:char(32)"`
+	Creator  string `gorm:"type:char(32)"`
 }
 type ModelWithUID struct {
 	Model
@@ -67,6 +69,14 @@ type ModelContent struct {
 	UserUID string `gorm:"type:char(32);index"`
 	Title   string `gorm:"type:varchar(64)"`
 	Content string
+}
+type ModelCommand struct {
+	ModelWithUID
+	CityName   string `gorm:"type:varchar(32)"`
+	StreetName string `gorm:"type:varchar(32)"`
+	PlaceName  string `gorm:"type:varchar(32)"`
+	Operate    string `gorm:"type:varchar(32)"`
+	Args       string `gorm:"type:varchar(128)"`
 }
 
 type Table struct {
@@ -105,7 +115,7 @@ func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
 }
 func (s Table) Create(m *ice.Message, arg ...string) {
 	for i := 0; i < len(arg); i += 2 {
-		if strings.HasSuffix(arg[i], "_time") {
+		if kit.HasSuffix(arg[i], "_time", "updated_at") {
 			if t, e := time.ParseInLocation("2006-01-02 15:04:05", arg[i+1], time.Local); e == nil {
 				arg[i+1] = t.UTC().Format("2006-01-02 15:04:05")
 			}
@@ -155,6 +165,8 @@ func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Me
 	kit.If(len(arg) == 0, func() { arg = append(arg, NAME) })
 	model := ""
 	switch target := target.(type) {
+	case []string:
+		model = kit.Select("", kit.Split(kit.Select("", target, -1), "."), -1)
 	case string:
 		model = kit.Select("", kit.Split(target, "."), -1)
 	default:
@@ -222,7 +234,7 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 
 func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
 	kit.For(data, func(k string, v string) {
-		if strings.HasSuffix(k, "_time") {
+		if kit.HasSuffix(k, "_time", "updated_at", "created_at") {
 			if t, e := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local); e == nil {
 				data[k] = t.UTC().Format("2006-01-02 15:04:05")
 			}
@@ -268,9 +280,7 @@ func (s Table) Exec(m *ice.Message, arg ...string) {
 func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	fields := kit.Simple(m.Optionv(mdb.SELECT))
 	kit.If(len(fields) > 0, func() { db = db.Select(fields) })
-	kit.If(m.Option(mdb.ORDER), func() {
-		db = db.Order(kit.Join(kit.Simple(m.Optionv(mdb.ORDER)), ","))
-	})
+	kit.If(m.Option(mdb.ORDER), func() { db = db.Order(kit.Join(kit.Simple(m.Optionv(mdb.ORDER)), ",")) })
 	rows, err := db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30"))).Rows()
 	if m.Warn(err) {
 		return m
@@ -302,7 +312,7 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 						v = t.Local().Format("2006-01-02 15:04:05")
 					}
 				}
-				m.Push(head[i], kit.Format("%v", v))
+				m.Push(head[i], fmt.Sprintf("%v", v))
 			}
 		}
 	}
@@ -311,7 +321,9 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 func (s Table) ClearOption(m *ice.Message, arg ...string) *ice.Message {
 	m.Optionv(mdb.TABLE, []string{})
 	m.Optionv(mdb.SELECT, []string{})
-	m.Optionv(mdb.ORDER, []string{})
+	if kit.IndexOf(m.Appendv(ice.MSG_APPEND), mdb.ORDER) == -1 {
+		m.Optionv(mdb.ORDER, []string{})
+	}
 	m.Optionv("query_option", []string{})
 	return m
 }
@@ -333,8 +345,11 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 	for i, v := range arg {
 		switch v := v.(type) {
 		case string:
-			kit.For([]string{NAME, TYPE, ROLE, AVATAR, STATUS, ADDRESS}, func(suffix string) {
-				if !strings.Contains(v, " ") && strings.HasSuffix(v, "_"+suffix) {
+			if !kit.Contains(v, " ", ".", "_") {
+				arg[i] = kit.Format("`%s`", v)
+			}
+			kit.For([]string{ICON, NAME, TYPE, ROLE, STATUS, AVATAR, ADDRESS}, func(suffix string) {
+				if !kit.Contains(v, " ", ".") && kit.HasSuffix(v, "_"+suffix) {
 					arg[i] = s.TableName(strings.TrimSuffix(v, "_"+suffix)) + "." + suffix + " AS " + v
 				}
 			})
@@ -418,7 +433,7 @@ func (s Table) AS(from, to string) string {
 	return from + " AS " + to
 }
 func (s Table) Desc(k string) string {
-	return k + " DESC"
+	return kit.Format("`%v` DESC", k)
 }
 
 func prefixKey() string { return kit.Keys("web.code", kit.PathName(-1), kit.FileName(-1)) }

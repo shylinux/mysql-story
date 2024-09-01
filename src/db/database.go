@@ -41,12 +41,14 @@ func (s database) Register(m *ice.Message) {
 	models := kit.Select(m.CommandKey(), m.Config(MODELS))
 	domain := kit.Select(kit.Select("", kit.Split(m.PrefixKey(), "."), 2), m.Config(DOMAIN))
 	target := s.Models.Target(m, kit.Keys(domain, models))
+	m.WarnNotFound(target == nil, kit.Keys(domain, models))
 	m.Cmd(s, s.Create, ctx.INDEX, m.PrefixKey(), MODELS, kit.Keys(domain, models), DOMAIN, domain, DRIVER, m.Config(DRIVER), kit.Dict(mdb.TARGET, target))
 }
 func (s database) OnceMigrate(m *ice.Message) {
 	once.Do(func() {
 		m.Spawn(ice.Maps{ice.MSG_DAEMON: ""}).Cmd(s.models, s.models.AutoCreate)
-		defer m.Event("web.code.db.migrate.before")("web.code.db.migrate.after")
+		m.Event("web.code.db.migrate.before")
+		defer m.GoSleep("30ms", func() { m.Event("web.code.db.migrate.after") })
 		m.Cmd(s, s.Migrate)
 	})
 }
