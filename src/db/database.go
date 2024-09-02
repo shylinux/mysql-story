@@ -27,7 +27,11 @@ func (s database) Migrate(m *ice.Message, arg ...string) {
 	driver := kit.Select(m.Config(DRIVER), arg, 0)
 	mdb.HashSelectValue(m.Message, func(value ice.Map) {
 		db := s.Driver.Target(m, kit.Select(driver, value[DRIVER]), kit.Format(value[DOMAIN]))
-		m.Warn(db.AutoMigrate(mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET])), value[ctx.INDEX])
+		if m.IsDebug() {
+			m.Warn(db.AutoMigrate(mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET])), value[ctx.INDEX])
+		} else {
+			mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(MODEL), value[mdb.TARGET])
+		}
 		mdb.Confv(m.Message, value[ctx.INDEX], kit.Keym(DB), db)
 	})
 }
@@ -47,8 +51,10 @@ func (s database) Register(m *ice.Message) {
 func (s database) OnceMigrate(m *ice.Message) {
 	once.Do(func() {
 		// m.Spawn(ice.Maps{ice.MSG_DAEMON: ""}).Cmd(s.models, s.models.AutoCreate)
-		m.Event("web.code.db.migrate.before")
-		defer m.GoSleep("30ms", func() { m.Event("web.code.db.migrate.after") })
+		if m.IsDebug() {
+			m.Event("web.code.db.migrate.before")
+			defer m.GoSleep("30ms", func() { m.Event("web.code.db.migrate.after") })
+		}
 		m.Cmd(s, s.Migrate)
 	})
 }
