@@ -46,7 +46,7 @@ func (s database) Register(m *ice.Message) {
 }
 func (s database) OnceMigrate(m *ice.Message) {
 	once.Do(func() {
-		m.Spawn(ice.Maps{ice.MSG_DAEMON: ""}).Cmd(s.models, s.models.AutoCreate)
+		// m.Spawn(ice.Maps{ice.MSG_DAEMON: ""}).Cmd(s.models, s.models.AutoCreate)
 		m.Event("web.code.db.migrate.before")
 		defer m.GoSleep("30ms", func() { m.Event("web.code.db.migrate.after") })
 		m.Cmd(s, s.Migrate)
