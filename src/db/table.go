@@ -281,7 +281,11 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	fields := kit.Simple(m.Optionv(mdb.SELECT))
 	kit.If(len(fields) > 0, func() { db = db.Select(fields) })
 	kit.If(m.Option(mdb.ORDER), func() { db = db.Order(kit.Join(kit.Simple(m.Optionv(mdb.ORDER)), ",")) })
-	rows, err := db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30"))).Rows()
+	db = db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30")))
+	return s.Rows(m, db)
+}
+func (s Table) Rows(m *ice.Message, db *gorm.DB) *ice.Message {
+	rows, err := db.Rows()
 	if m.Warn(err) {
 		return m
 	}
@@ -345,7 +349,7 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 	for i, v := range arg {
 		switch v := v.(type) {
 		case string:
-			if !kit.Contains(v, " ", ".", "_") {
+			if !kit.Contains(v, " ", ".", "_", "(", ")") {
 				arg[i] = kit.Format("`%s`", v)
 			}
 			kit.For([]string{ICON, NAME, TYPE, ROLE, STATUS, AVATAR, ADDRESS}, func(suffix string) {
