@@ -17,6 +17,8 @@ import (
 
 const (
 	MODEL      = "model"
+	FIELDS     = "fields"
+	TARGET     = "target"
 	CREATED_AT = "created_at"
 	UPDATED_AT = "updated_at"
 	DELETED_AT = "deleted_at"
@@ -41,7 +43,7 @@ type Model struct {
 }
 type ModelWithUID struct {
 	Model
-	Uid string `gorm:"type:char(32);uniqueIndex"`
+	UID string `gorm:"type:char(32);uniqueIndex"`
 }
 type ModelWithAuth struct {
 	ModelWithUID
@@ -70,25 +72,36 @@ type ModelContent struct {
 	Title   string `gorm:"type:varchar(64)"`
 	Content string
 }
+type ModelNameInfo struct {
+	ModelWithUID
+	Name string `gorm:"type:varchar(64)"`
+	Type uint8  `gorm:"default:0"`
+	Info string
+}
+type ModelExternal struct {
+	ModelWithUID
+	CompanyUID string `gorm:"type:char(32)"`
+	OpenID     string `gorm:"type:varchar(128)"`
+	Status     uint8  `gorm:"default:0"`
+}
 type ModelCommand struct {
 	ModelWithUID
-	CityName   string `gorm:"type:varchar(32)"`
-	StreetName string `gorm:"type:varchar(32)"`
-	PlaceName  string `gorm:"type:varchar(32)"`
+	CityName   string `gorm:"type:varchar(64)"`
+	StreetName string `gorm:"type:varchar(64)"`
+	PlaceName  string `gorm:"type:varchar(64)"`
 	Operate    string `gorm:"type:varchar(32)"`
 	Args       string `gorm:"type:varchar(128)"`
 }
 
 type Table struct {
 	ice.Hash
-	database database
-	// export        string `data:"true"`
+	database      database
 	beforeMigrate string `name:"beforeMigrate" event:"web.code.db.migrate.before"`
 	afterMigrate  string `name:"afterMigrate" event:"web.code.db.migrate.after"`
 	create        string `name:"create name*"`
-	rename        string `name:"rename name*"`
-	list          string `name:"list id auto"`
+	list          string `name:"list uid auto"`
 	find          string `name:"find uid*"`
+	rename        string `name:"rename name*"`
 }
 
 func (s Table) BeforeMigrate(m *ice.Message, arg ...string) {
@@ -103,33 +116,40 @@ func (s Table) Inputs(m *ice.Message, arg ...string) {
 		m.DisplayInputKeyNameIconTitle()
 	}
 }
-
 func (s Table) Open(m *ice.Message) *gorm.DB {
 	s.database.OnceMigrate(m)
 	db, ok := m.Optionv(DB).(*gorm.DB)
 	kit.If(!ok, func() { db, ok = m.Configv(DB).(*gorm.DB) })
-	return db.Model(m.Configv(MODEL)).WithContext(m)
+	model := m.Optionv(MODEL)
+	switch model.(type) {
+	case []string:
+		model = nil
+	}
+	kit.If(model == nil, func() { model = m.Configv(MODEL) })
+	return db.Model(model).WithContext(m)
 }
-func (s Table) OpenID(m *ice.Message, id string) *gorm.DB {
-	return s.Open(m).Where("id = ?", id)
+func (s Table) OpenUID(m *ice.Message, uid string) *gorm.DB {
+	return s.Open(m).Where("uid = ?", uid)
 }
 func (s Table) Create(m *ice.Message, arg ...string) {
 	for i := 0; i < len(arg); i += 2 {
-		if kit.HasSuffix(arg[i], "_time", "updated_at") {
+		if kit.HasSuffix(arg[i], "_time", UPDATED_AT) {
 			if t, e := time.ParseInLocation("2006-01-02 15:04:05", arg[i+1], time.Local); e == nil {
 				arg[i+1] = t.UTC().Format("2006-01-02 15:04:05")
 			}
 		}
 	}
 	data := kit.Dict(CREATED_AT, s.now(m), CREATOR, m.Option(ice.MSG_USERNAME), arg)
-	switch model := m.Configv(MODEL).(type) {
+	model := m.Optionv(MODEL)
+	kit.If(model == nil, func() { model = m.Configv(MODEL) })
+	switch model := model.(type) {
 	case interface{ OnCreate(ice.Map) }:
 		model.OnCreate(data)
 	default:
 		if data[UID] == nil {
 			t := reflect.TypeOf(model)
 			kit.If(t.Kind() == reflect.Ptr, func() { t = t.Elem() })
-			if _, ok := t.FieldByName("Uid"); ok {
+			if _, ok := t.FieldByName("UID"); ok {
 				data[UID] = kit.HashsUniq()
 			}
 		}
@@ -139,70 +159,23 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 	}
 	m.ProcessRefresh()
 }
-func (s Table) Modify(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(ice.Map{UPDATED_AT: s.now(m), OPERATOR: m.Option(ice.MSG_USERNAME), arg[0]: arg[1]}).Error)
-}
 func (s Table) Remove(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenID(m, m.Option(mdb.ID)).Updates(kit.Dict(DELETED_AT, s.now(m), arg)).Error)
+	m.Warn(s.OpenUID(m, m.Option(UID)).Updates(kit.Dict(DELETED_AT, s.now(m), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
+}
+func (s Table) Modify(m *ice.Message, arg ...string) {
+	m.Warn(s.OpenUID(m, m.Option(UID)).Updates(ice.Map{UPDATED_AT: s.now(m), OPERATOR: m.Option(ice.MSG_USERNAME), arg[0]: arg[1]}).Error)
 }
 func (s Table) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) == 0 {
 		m.OptionDefault(mdb.ORDER, "id desc")
 		s.Show(m, s.Open(m)).PushAction(s.Remove).Action(s.Create)
 	} else {
-		m.FieldsSetDetail()
-		s.Show(m, s.OpenID(m, arg[0])).PushAction(s.Remove)
+		s.Show(m.FieldsSetDetail(), s.OpenUID(m, arg[0])).PushAction(s.Remove)
 	}
 	return m
 }
 func (s Table) Find(m *ice.Message, arg ...string) {
 	s.Select(m, arg...)
-}
-func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Message {
-	if m.Length() == 0 {
-		return m
-	}
-	kit.If(len(arg) == 0, func() { arg = append(arg, NAME) })
-	model := ""
-	switch target := target.(type) {
-	case []string:
-		model = kit.Select("", kit.Split(kit.Select("", target, -1), "."), -1)
-	case string:
-		model = kit.Select("", kit.Split(target, "."), -1)
-	default:
-		model = s.ToLower(kit.TypeName(target))
-	}
-	s.ClearOption(m)
-	list := []string{}
-	m.Table(func(value ice.Maps) {
-		kit.If(value[model+"_uid"], func(v string) {
-			list = kit.AddUniq(list, v)
-		})
-	})
-	if len(list) == 0 {
-		return m
-	}
-	users := m.CmdMap(target, s.SelectList, UID, list, UID)
-	m.Table(func(value ice.Maps) {
-		user := users[value[model+"_uid"]]
-		kit.For(arg, func(k string) {
-			if kit.HasSuffix(k, "_uid") {
-				m.Push(k, user[k])
-			} else {
-				m.Push(model+"_"+k, user[k])
-			}
-		})
-	})
-	return m
-}
-func (s Table) SelectList(m *ice.Message, arg ...string) {
-	s.Select(m, kit.Format(`%s in ("%v")`, arg[0], kit.Join(arg[1:], `","`)))
-}
-func (s Table) SelectForUpdate(m *ice.Message, arg ...string) *ice.Message {
-	return s.Select(m.Options("query_option", "FOR UPDATE"), arg...)
-}
-func (s Table) SelectDetail(m *ice.Message, arg ...string) *ice.Message {
-	return s.Select(m.FieldsSetDetail(), arg...).Action()
 }
 func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	db := s.Open(m)
@@ -224,17 +197,56 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 		db = db.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
 	s.Show(m, s.Where(m, db, arg...))
-	if !m.FieldsIsDetail() {
-		m.Action(s.Create)
-	}
 	s.ClearOption(m)
+	kit.If(!m.FieldsIsDetail(), func() { m.Action(s.Create) })
 	m.PushAction()
 	return m
 }
-
+func (s Table) SelectDetail(m *ice.Message, arg ...string) *ice.Message {
+	return s.Select(m.FieldsSetDetail(), arg...).Action()
+}
+func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Message {
+	if m.Length() == 0 {
+		return m
+	}
+	kit.If(len(arg) == 0, func() { arg = append(arg, NAME) })
+	model := ""
+	switch target := target.(type) {
+	case []string:
+		model = kit.Select("", kit.Split(kit.Select("", target, -1), "."), -1)
+	case string:
+		model = kit.Select("", kit.Split(target, "."), -1)
+	default:
+		model = s.ToLower(kit.TypeName(target))
+	}
+	list := []string{}
+	m.Table(func(value ice.Maps) { kit.If(value[model+"_uid"], func(v string) { list = kit.AddUniq(list, v) }) })
+	if len(list) == 0 {
+		return m
+	}
+	s.ClearOption(m)
+	users := m.CmdMap(target, s.SelectList, UID, list, UID)
+	m.Table(func(value ice.Maps) {
+		user := users[value[model+"_uid"]]
+		kit.For(arg, func(k string) {
+			if kit.HasSuffix(k, "_uid") {
+				m.Push(k, user[k])
+			} else {
+				m.Push(model+"_"+k, user[k])
+			}
+		})
+	})
+	return m
+}
+func (s Table) SelectList(m *ice.Message, arg ...string) {
+	s.Select(m, kit.Format(`%s in ("%v")`, arg[0], kit.Join(arg[1:], `","`)))
+}
+func (s Table) SelectForUpdate(m *ice.Message, arg ...string) *ice.Message {
+	return s.Select(m.Options("query_option", "FOR UPDATE"), arg...)
+}
 func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
 	kit.For(data, func(k string, v string) {
-		if kit.HasSuffix(k, "_time", "updated_at", "created_at") {
+		if kit.HasSuffix(k, "_time", UPDATED_AT, CREATED_AT) {
 			if t, e := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local); e == nil {
 				data[k] = t.UTC().Format("2006-01-02 15:04:05")
 			}
@@ -247,12 +259,12 @@ func (s Table) Rename(m *ice.Message, arg ...string) *ice.Message {
 	s.Update(m, kit.Dict(NAME, m.Option(NAME)), arg...)
 	return m
 }
-func (s Table) Delete(m *ice.Message, arg ...string) *ice.Message {
+func (s Table) Delete(m *ice.Message, arg ...string) {
 	res := s.Where(m, s.Open(m), arg...).Delete(m.Configv(MODEL))
 	m.Push(mdb.COUNT, res.RowsAffected).Warn(res.Error)
 	m.ProcessRefresh()
-	return m
 }
+
 func (s Table) Transaction(m *ice.Message, cb func()) {
 	s.Open(m).Transaction(func(tx *gorm.DB) error {
 		m.Optionv(DB, tx)
@@ -274,15 +286,13 @@ func (s Table) AddCount(m *ice.Message, arg ...string) {
 	}
 }
 func (s Table) Exec(m *ice.Message, arg ...string) {
-	db := s.Open(m)
-	db.Exec(arg[0])
+	m.Warn(s.Open(m).Exec(arg[0]).Error)
 }
 func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	fields := kit.Simple(m.Optionv(mdb.SELECT))
 	kit.If(len(fields) > 0, func() { db = db.Select(fields) })
 	kit.If(m.Option(mdb.ORDER), func() { db = db.Order(kit.Join(kit.Simple(m.Optionv(mdb.ORDER)), ",")) })
-	db = db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30")))
-	return s.Rows(m, db)
+	return s.Rows(m, db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30"))))
 }
 func (s Table) Rows(m *ice.Message, db *gorm.DB) *ice.Message {
 	rows, err := db.Rows()
@@ -322,6 +332,7 @@ func (s Table) Rows(m *ice.Message, db *gorm.DB) *ice.Message {
 	}
 	return m
 }
+
 func (s Table) ClearOption(m *ice.Message, arg ...string) *ice.Message {
 	m.Optionv(mdb.TABLE, []string{})
 	m.Optionv(mdb.SELECT, []string{})
@@ -336,13 +347,8 @@ func (s Table) Tables(m *ice.Message, target ...ice.Any) Table {
 	return s
 }
 func (s Table) FieldsWithCreatedAT(m *ice.Message, target ice.Any, arg ...ice.Any) Table {
-	if target == nil || target == "" {
-		target = m.Configv(MODEL)
-	}
-	s.Fields(m, append([]ice.Any{
-		s.AS(s.Key(target, CREATED_AT), CREATED_AT),
-		s.AS(s.Key(target, UID), UID),
-	}, arg...)...).Orders(m, s.Desc(CREATED_AT))
+	kit.If(target == nil || target == "", func() { target = m.Configv(MODEL) })
+	s.Fields(m, append([]ice.Any{s.AS(s.Key(target, CREATED_AT), CREATED_AT), s.AS(s.Key(target, UID), UID)}, arg...)...).Orders(m, s.Desc(CREATED_AT))
 	return s
 }
 func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
@@ -398,6 +404,7 @@ func (s Table) LeftJoin(target ice.Any) string {
 	models = s.TableName(model)
 	return kit.Format("left join %s on %s_uid = %s.uid", models, model, models)
 }
+
 func (s Table) ToLower(model string) string {
 	list, begin, last := []string{}, 0, false
 	for i, v := range model {
@@ -424,9 +431,6 @@ func (s Table) TableName(model string) string {
 	}
 	return model
 }
-func (s Table) now(m *ice.Message) string {
-	return time.Now().UTC().Format("2006-01-02 15:04:05")
-}
 func (s Table) Keys(target ice.Any, k string) string {
 	return s.ToLower(kit.TypeName(target)) + "_" + k
 }
@@ -438,6 +442,9 @@ func (s Table) AS(from, to string) string {
 }
 func (s Table) Desc(k string) string {
 	return kit.Format("`%v` DESC", k)
+}
+func (s Table) now(m *ice.Message) string {
+	return time.Now().UTC().Format("2006-01-02 15:04:05")
 }
 
 func prefixKey() string { return kit.Keys("web.code", kit.PathName(-1), kit.FileName(-1)) }
