@@ -284,6 +284,7 @@ func (s Table) AddCount(m *ice.Message, arg ...string) {
 		s.Exec(m, kit.Format("UPDATE %s SET %s = %s + %s WHERE uid = '%s'",
 			s.TableName(kit.TypeName(m.Configv(MODEL))), arg[0], arg[0], arg[1], arg[2]))
 	}
+	m.Echo(s.Select(m.Spawn(), UID, arg[2]).Append(arg[0]))
 }
 func (s Table) Exec(m *ice.Message, arg ...string) {
 	m.Warn(s.Open(m).Exec(arg[0]).Error)
