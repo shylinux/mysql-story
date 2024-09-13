@@ -29,6 +29,8 @@ const (
 	NAME       = "name"
 	TYPE       = "type"
 	ROLE       = "role"
+	LEVEL      = "level"
+	SCORE      = "score"
 	STATUS     = "status"
 	AVATAR     = "avatar"
 	ADDRESS    = "address"
@@ -89,6 +91,7 @@ type ModelCommand struct {
 	CityName   string `gorm:"type:varchar(64)"`
 	StreetName string `gorm:"type:varchar(64)"`
 	PlaceName  string `gorm:"type:varchar(64)"`
+	DetailName string `gorm:"type:varchar(64)"`
 	Operate    string `gorm:"type:varchar(32)"`
 	Args       string `gorm:"type:varchar(128)"`
 }
@@ -359,7 +362,7 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 			if !kit.Contains(v, " ", ".", "_", "(", ")") {
 				arg[i] = kit.Format("`%s`", v)
 			}
-			kit.For([]string{ICON, NAME, TYPE, ROLE, STATUS, AVATAR, ADDRESS}, func(suffix string) {
+			kit.For([]string{ICON, NAME, TYPE, ROLE, LEVEL, SCORE, STATUS, AVATAR, ADDRESS}, func(suffix string) {
 				if !kit.Contains(v, " ", ".") && kit.HasSuffix(v, "_"+suffix) {
 					arg[i] = s.TableName(strings.TrimSuffix(v, "_"+suffix)) + "." + suffix + " AS " + v
 				}
