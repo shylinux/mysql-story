@@ -117,6 +117,8 @@ func (s Table) Inputs(m *ice.Message, arg ...string) {
 		s.Fields(m, UID, NAME)
 		m.Cmdy(m.Prefix(strings.TrimSuffix(arg[0], "_uid"))).RenameAppend(UID, arg[0])
 		m.DisplayInputKeyNameIconTitle()
+	} else {
+		s.Hash.Inputs(m, arg...)
 	}
 }
 func (s Table) Open(m *ice.Message) *gorm.DB {
@@ -262,12 +264,12 @@ func (s Table) Rename(m *ice.Message, arg ...string) *ice.Message {
 	s.Update(m, kit.Dict(NAME, m.Option(NAME)), arg...)
 	return m
 }
-func (s Table) Delete(m *ice.Message, arg ...string) {
-	res := s.Where(m, s.Open(m), arg...).Delete(m.Configv(MODEL))
-	m.Push(mdb.COUNT, res.RowsAffected).Warn(res.Error)
-	m.ProcessRefresh()
+func (s Table) Insert(m *ice.Message, arg ...string) {
+	s.Create(m, arg...)
 }
-
+func (s Table) Delete(m *ice.Message, arg ...string) {
+	s.Remove(m, arg...)
+}
 func (s Table) Transaction(m *ice.Message, cb func()) {
 	s.Open(m).Transaction(func(tx *gorm.DB) error {
 		m.Optionv(DB, tx)
@@ -280,6 +282,9 @@ func (s Table) Transaction(m *ice.Message, cb func()) {
 	s.ClearOption(m)
 }
 func (s Table) AddCount(m *ice.Message, arg ...string) {
+	if len(arg) == 2 {
+		arg = append(arg, m.Option(UID))
+	}
 	if len(arg) > 3 {
 		s.Exec(m, kit.Format("UPDATE %s SET %s = %s + %s WHERE uid = '%s' AND %s = %s",
 			s.TableName(kit.TypeName(m.Configv(MODEL))), arg[0], arg[0], arg[1], arg[2], arg[0], arg[3]))
