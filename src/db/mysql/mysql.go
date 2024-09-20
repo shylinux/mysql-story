@@ -4,6 +4,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/aaa"
 	"shylinux.com/x/icebergs/base/mdb"
@@ -41,3 +42,9 @@ func (s Mysql) AutoCreate(m *ice.Message, arg ...string) {
 }
 
 func init() { ice.Cmd("web.code.db.mysql", Mysql{}) }
+
+func Open(m *ice.Message) (*gorm.DB, error) {
+	dsn := kit.Format("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True",
+		m.Append(aaa.USERNAME), m.Append(aaa.PASSWORD), m.Append(tcp.HOST), m.Append(tcp.PORT), m.Append(mdb.DATABASE))
+	return gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+}
