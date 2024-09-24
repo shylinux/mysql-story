@@ -27,12 +27,14 @@ const (
 	UID        = "uid"
 	ICON       = "icon"
 	NAME       = "name"
+	INFO       = "info"
 	TYPE       = "type"
 	ROLE       = "role"
 	LEVEL      = "level"
 	SCORE      = "score"
 	STATUS     = "status"
 	AVATAR     = "avatar"
+	BACKGROUND = "background"
 	ADDRESS    = "address"
 )
 
@@ -55,6 +57,7 @@ type ModelUserPlace struct {
 	ModelWithUID
 	UserUID string `gorm:"type:char(32);index"`
 	Role    uint8  `gorm:"default:0"`
+	Status  uint8  `gorm:"default:0"`
 }
 type ModelPlace struct {
 	ModelWithAuth
@@ -226,11 +229,11 @@ func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Me
 	}
 	list := []string{}
 	m.Table(func(value ice.Maps) { kit.If(value[model+"_uid"], func(v string) { list = kit.AddUniq(list, v) }) })
-	if len(list) == 0 {
-		return m
+	users := map[string]ice.Maps{}
+	if len(list) > 0 {
+		s.ClearOption(m)
+		users = m.CmdMap(target, s.SelectList, UID, list, UID)
 	}
-	s.ClearOption(m)
-	users := m.CmdMap(target, s.SelectList, UID, list, UID)
 	m.Table(func(value ice.Maps) {
 		user := users[value[model+"_uid"]]
 		kit.For(arg, func(k string) {
@@ -367,7 +370,10 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 			if !kit.Contains(v, " ", ".", "_", "(", ")") {
 				arg[i] = kit.Format("`%s`", v)
 			}
-			kit.For([]string{ICON, NAME, TYPE, ROLE, LEVEL, SCORE, STATUS, AVATAR, ADDRESS}, func(suffix string) {
+			kit.For([]string{
+				ICON, NAME, INFO, TYPE, ROLE, LEVEL, SCORE, STATUS,
+				AVATAR, BACKGROUND, ADDRESS,
+			}, func(suffix string) {
 				if !kit.Contains(v, " ", ".") && kit.HasSuffix(v, "_"+suffix) {
 					arg[i] = s.TableName(strings.TrimSuffix(v, "_"+suffix)) + "." + suffix + " AS " + v
 				}
