@@ -237,9 +237,15 @@ func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Me
 	m.Table(func(value ice.Maps) {
 		user := users[value[model+"_uid"]]
 		kit.For(arg, func(k string) {
-			if kit.HasSuffix(k, "_uid") {
+			if kit.HasSuffix(k, "_uid") || kit.IndexOf(commonField, k) == -1 {
+				if len(m.Appendv(k)) == m.Length() {
+					return
+				}
 				m.Push(k, user[k])
 			} else {
+				if len(m.Appendv(model+"_"+k)) == m.Length() {
+					return
+				}
 				m.Push(model+"_"+k, user[k])
 			}
 		})
@@ -363,6 +369,12 @@ func (s Table) FieldsWithCreatedAT(m *ice.Message, target ice.Any, arg ...ice.An
 	s.Fields(m, append([]ice.Any{s.AS(s.Key(target, CREATED_AT), CREATED_AT), s.AS(s.Key(target, UID), UID)}, arg...)...).Orders(m, s.Desc(CREATED_AT))
 	return s
 }
+
+var commonField = []string{
+	ICON, NAME, INFO, TYPE, ROLE, LEVEL, SCORE, STATUS,
+	AVATAR, BACKGROUND, ADDRESS,
+}
+
 func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 	for i, v := range arg {
 		switch v := v.(type) {
@@ -370,10 +382,7 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 			if !kit.Contains(v, " ", ".", "_", "(", ")") {
 				arg[i] = kit.Format("`%s`", v)
 			}
-			kit.For([]string{
-				ICON, NAME, INFO, TYPE, ROLE, LEVEL, SCORE, STATUS,
-				AVATAR, BACKGROUND, ADDRESS,
-			}, func(suffix string) {
+			kit.For(commonField, func(suffix string) {
 				if !kit.Contains(v, " ", ".") && kit.HasSuffix(v, "_"+suffix) {
 					arg[i] = s.TableName(strings.TrimSuffix(v, "_"+suffix)) + "." + suffix + " AS " + v
 				}

@@ -14,6 +14,7 @@ const (
 	DATABASE = "database"
 	TABLE    = "table"
 	WHERE    = "where"
+	ID       = "id"
 )
 
 type query struct {
@@ -32,6 +33,11 @@ func (s query) Drop(m *ice.Message, arg ...string) {
 				db.Query(m, "drop database "+m.Option(DATABASE)).ToLowerAppend()
 			}
 		}
+	})
+}
+func (s query) Modify(m *ice.Message, arg ...string) {
+	s.open(m, m.Option(aaa.SESS), m.Option(DATABASE), func(db *Driver) {
+		db.Exec(m, kit.Format("UPDATE %s SET %s = '%s' WHERE id = %s", m.Option(TABLE), arg[0], arg[1], m.Option(ID)))
 	})
 }
 func (s query) List(m *ice.Message, arg ...string) {
