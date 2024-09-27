@@ -44,16 +44,10 @@ type Time time.Time
 
 type Model struct {
 	gorm.Model
-	Operator string `gorm:"type:char(32)"`
-	Creator  string `gorm:"type:char(32)"`
 }
 type ModelWithUID struct {
 	Model
 	UID string `gorm:"type:char(32);uniqueIndex"`
-}
-type ModelWithAuth struct {
-	ModelWithUID
-	AuthUID string `gorm:"type:char(32);index"`
 }
 type ModelUserPlace struct {
 	ModelWithUID
@@ -63,15 +57,28 @@ type ModelUserPlace struct {
 }
 type ModelPlace struct {
 	ModelWithAuth
-	Name string `gorm:"type:varchar(64)"`
-	Type uint8  `gorm:"default:0"`
-	Init uint8  `gorm:"default:0"`
+	Type uint8 `gorm:"default:0"`
+	Init uint8 `gorm:"default:0"`
 }
 type ModelStreet struct {
 	ModelWithAuth
 	CityUID string `gorm:"type:char(32);index:idx_city"`
 	Name    string `gorm:"type:varchar(64);index:idx_city"`
-	Info    string
+}
+type ModelWithAuth struct {
+	ModelWithUID
+	AuthUID    string `gorm:"type:char(32);index"`
+	Name       string `gorm:"type:varchar(32)"`
+	Info       string `gorm:"type:varchar(255)"`
+	Avatar     string `gorm:"type:varchar(255)"`
+	Background string `gorm:"type:varchar(255)"`
+}
+type ModelNameInfo struct {
+	ModelWithUID
+	UserUID string `gorm:"type:char(32);index"`
+	Name    string `gorm:"type:varchar(64)"`
+	Info    string `gorm:"type:varchar(255)"`
+	Type    uint8  `gorm:"default:0"`
 }
 type ModelContent struct {
 	ModelWithUID
@@ -79,26 +86,11 @@ type ModelContent struct {
 	Title   string `gorm:"type:varchar(64)"`
 	Content string
 }
-type ModelNameInfo struct {
-	ModelWithUID
-	Name string `gorm:"type:varchar(64)"`
-	Type uint8  `gorm:"default:0"`
-	Info string
-}
 type ModelExternal struct {
 	ModelWithUID
 	CompanyUID string `gorm:"type:char(32)"`
 	OpenID     string `gorm:"type:varchar(128)"`
 	Status     uint8  `gorm:"default:0"`
-}
-type ModelCommand struct {
-	ModelWithUID
-	CityName   string `gorm:"type:varchar(64)"`
-	StreetName string `gorm:"type:varchar(64)"`
-	PlaceName  string `gorm:"type:varchar(64)"`
-	DetailName string `gorm:"type:varchar(64)"`
-	Operate    string `gorm:"type:varchar(32)"`
-	Args       string `gorm:"type:varchar(128)"`
 }
 
 type Table struct {
@@ -149,7 +141,7 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 			}
 		}
 	}
-	data := kit.Dict(CREATED_AT, s.now(m), CREATOR, m.Option(ice.MSG_USERNAME), arg)
+	data := kit.Dict(CREATED_AT, s.now(m), arg)
 	model := m.Optionv(MODEL)
 	kit.If(model == nil, func() { model = m.Configv(MODEL) })
 	switch model := model.(type) {
@@ -170,10 +162,10 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 	m.ProcessRefresh()
 }
 func (s Table) Remove(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenUID(m, m.Option(UID)).Updates(kit.Dict(DELETED_AT, s.now(m), OPERATOR, m.Option(ice.MSG_USERNAME), arg)).Error)
+	m.Warn(s.OpenUID(m, m.Option(UID)).Updates(kit.Dict(DELETED_AT, s.now(m), arg)).Error)
 }
 func (s Table) Modify(m *ice.Message, arg ...string) {
-	m.Warn(s.OpenUID(m, m.Option(UID)).Updates(ice.Map{UPDATED_AT: s.now(m), OPERATOR: m.Option(ice.MSG_USERNAME), arg[0]: arg[1]}).Error)
+	m.Warn(s.OpenUID(m, m.Option(UID)).Updates(ice.Map{UPDATED_AT: s.now(m), arg[0]: arg[1]}).Error)
 }
 func (s Table) List(m *ice.Message, arg ...string) *ice.Message {
 	if len(arg) == 0 {
@@ -240,22 +232,17 @@ func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Me
 		user := users[value[model+"_uid"]]
 		kit.For(arg, func(k string) {
 			if kit.HasSuffix(k, "_uid") || kit.IndexOf(CommonField, k) == -1 {
-				if len(m.Appendv(k)) == m.Length() {
-					return
-				}
 				m.Push(k, user[k])
 			} else {
-				if len(m.Appendv(model+"_"+k)) == m.Length() {
-					return
-				}
 				m.Push(model+"_"+k, user[k])
 			}
 		})
 	})
 	return m
 }
-func (s Table) SelectList(m *ice.Message, arg ...string) {
+func (s Table) SelectList(m *ice.Message, arg ...string) *ice.Message {
 	s.Select(m, kit.Format(`%s in ("%v")`, arg[0], kit.Join(arg[1:], `","`)))
+	return m
 }
 func (s Table) SelectForUpdate(m *ice.Message, arg ...string) *ice.Message {
 	return s.Select(m.Options("query_option", "FOR UPDATE"), arg...)
@@ -424,8 +411,7 @@ func (s Table) LeftJoin(target ice.Any) string {
 		}
 		model = target
 	default:
-		model = kit.TypeName(target)
-		model = s.ToLower(model)
+		model = s.ToLower(kit.TypeName(target))
 	}
 	models = s.TableName(model)
 	return kit.Format("left join %s on %s_uid = %s.uid", models, model, models)
