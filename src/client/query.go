@@ -39,6 +39,7 @@ func (s query) Modify(m *ice.Message, arg ...string) {
 	s.open(m, m.Option(aaa.SESS), m.Option(DATABASE), func(db *Driver) {
 		db.Exec(m, kit.Format("UPDATE %s SET %s = '%s' WHERE id = %s", m.Option(TABLE), arg[0], arg[1], m.Option(ID)))
 	})
+	m.ProcessRefresh()
 }
 func (s query) List(m *ice.Message, arg ...string) {
 	if len(arg) == 0 || arg[0] == "" {
