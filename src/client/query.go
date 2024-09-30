@@ -49,7 +49,7 @@ func (s query) List(m *ice.Message, arg ...string) {
 			db.Query(m, "show databases").ToLowerAppend()
 		})
 		m.Table(func(value ice.Maps) {
-			if !kit.IsIn(value[DATABASE], "mysql", "information_schema", "performance_schema") {
+			if !kit.IsIn(value[DATABASE], "gonganxitong", "mysql", "information_schema", "performance_schema") {
 				m.PushButton(s.Drop)
 			} else {
 				m.PushButton()
