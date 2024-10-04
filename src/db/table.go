@@ -247,11 +247,12 @@ func (s Table) SelectList(m *ice.Message, arg ...string) *ice.Message {
 func (s Table) SelectForUpdate(m *ice.Message, arg ...string) *ice.Message {
 	return s.Select(m.Options("query_option", "FOR UPDATE"), arg...)
 }
-func (s Table) Update(m *ice.Message, data ice.Map, arg ...string) {
+func (s Table) Update(m *ice.Message, data ice.Any, arg ...string) {
+	data = kit.Dict(data)
 	kit.For(data, func(k string, v string) {
 		if kit.HasSuffix(k, "_time", UPDATED_AT, CREATED_AT) {
 			if t, e := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local); e == nil {
-				data[k] = t.UTC().Format("2006-01-02 15:04:05")
+				kit.Value(data, k, t.UTC().Format("2006-01-02 15:04:05"))
 			}
 		}
 	})
