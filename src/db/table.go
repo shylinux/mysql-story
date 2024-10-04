@@ -231,9 +231,15 @@ func (s Table) SelectJoin(m *ice.Message, target ice.Any, arg ...string) *ice.Me
 	m.Table(func(value ice.Maps) {
 		user := users[value[model+"_uid"]]
 		kit.For(arg, func(k string) {
-			if kit.HasSuffix(k, "_uid") || kit.IndexOf(CommonField, k) == -1 {
+			if kit.IndexOf(CommonField, k) == -1 {
+				if len(m.Appendv(k)) == m.Length() {
+					return
+				}
 				m.Push(k, user[k])
 			} else {
+				if len(m.Appendv(model+"_"+k)) == m.Length() {
+					return
+				}
 				m.Push(model+"_"+k, user[k])
 			}
 		})
