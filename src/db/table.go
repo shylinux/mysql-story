@@ -185,9 +185,15 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	case []ice.Any:
 		kit.For(table, func(table ice.Any) { db = db.Joins(s.LeftJoin(table)) })
 	case []string:
-		kit.For(table, func(table string) { db = db.Joins(s.LeftJoin(table)) })
+		kit.For(table, func(table string) {
+			if table != "" {
+				db = db.Joins(s.LeftJoin(table))
+			}
+		})
 	case string:
-		db = db.Joins(s.LeftJoin(table))
+		if table != "" {
+			db = db.Joins(s.LeftJoin(table))
+		}
 	case ice.Any:
 		db = db.Joins(s.LeftJoin(table))
 	case nil:
@@ -333,14 +339,22 @@ func (s Table) Rows(m *ice.Message, db *gorm.DB) *ice.Message {
 			case nil:
 				m.Push(head[i], "")
 			case []byte:
-				m.Push(head[i], string(v))
+				if len(v) == 0 {
+					m.Push(head[i], "")
+				} else {
+					m.Push(head[i], string(v))
+				}
 			default:
 				if v != nil && (kit.IsIn(head[i], CREATED_AT, UPDATED_AT) || kit.HasSuffix(head[i], "_time")) {
 					if t, e := time.Parse("2006-01-02 15:04:05 -0700 UTC", kit.Format("%v", v)); e == nil {
 						v = t.Local().Format("2006-01-02 15:04:05")
 					}
 				}
-				m.Push(head[i], fmt.Sprintf("%v", v))
+				if v == nil {
+					m.Push(head[i], "")
+				} else {
+					m.Push(head[i], fmt.Sprintf("%v", v))
+				}
 			}
 		}
 	}
@@ -439,6 +453,9 @@ func (s Table) ToLower(model string) string {
 }
 func (s Table) TableName(model string) string {
 	model = s.ToLower(model)
+	if strings.Contains("0123456789", model[len(model)-1:]) {
+		return model
+	}
 	if kit.HasSuffix(model, "y") {
 		model = model[:len(model)-1] + "ies"
 	} else if kit.HasSuffix(model, "s") {

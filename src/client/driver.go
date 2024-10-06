@@ -6,7 +6,6 @@ import (
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/mdb"
 	kit "shylinux.com/x/toolkits"
-
 	// _ "shylinux.com/x/go-sql-mysql"
 )
 
@@ -50,6 +49,8 @@ func (s Driver) Query(m *ice.Message, stm string, arg ...ice.Any) *ice.Message {
 			rows.Scan(data...)
 			for i, v := range data {
 				switch v = *(v.(*ice.Any)); v := v.(type) {
+				case nil:
+					m.Push(head[i], "")
 				case []byte:
 					m.Push(head[i], string(v))
 				default:
