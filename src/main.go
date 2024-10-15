@@ -12,7 +12,6 @@ import (
 func main() { print(ice.Run()) }
 
 func init() {
-	ice.Info.Titles = "数据库"
 	ice.Info.NodeIcon = "src/studio/studio.png"
 	ice.Info.NodeMain = "web.code.mysql.studio"
 }
