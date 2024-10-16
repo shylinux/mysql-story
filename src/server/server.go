@@ -27,7 +27,7 @@ type server struct {
 	darwin  string `data:"https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-osx10.11-x86_64.tar.gz"`
 	windows string `data:"https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33-winx64.zip"`
 	source  string `data:"https://cdn.mysql.com/archives/mysql-5.6/mysql-5.6.33.tar.gz"`
-	start   string `name:"start port*=10001 username password"`
+	start   string `name:"start port*=10001 username=root password=root"`
 }
 
 func (s server) Init(m *ice.Message, arg ...string) {
