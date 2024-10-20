@@ -15,7 +15,7 @@ type client struct {
 	short  string `data:"sess"`
 	action string `data:"xterm"`
 	field  string `data:"time,sess,driver,database,host,port,username,password"`
-	create string `name:"create sess*=biz driver*=mysql database*=mysql host*=localhost port*=10001 username*=root password*=root"`
+	create string `name:"create sess*=mysql driver*=mysql database*=mysql host*=localhost port*=10001 username*=root password*=root"`
 	list   string `name:"list sess auto" help:"存储"`
 }
 
@@ -32,9 +32,8 @@ func (s client) Xterm(m *ice.Message, arg ...string) {
 
 }
 func (s client) List(m *ice.Message, arg ...string) {
-	s.Hash.List(m, arg...)
-	if len(arg) == 1 {
-		m.EchoScript(kit.Format("CREATE DATABASE IF NOT EXISTS %s CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;", m.Append(DATABASE)))
+	if s.Hash.List(m, arg...); m.Length() == 0 {
+		m.EchoInfoButton("请创建数据库连接")
 	}
 }
 

@@ -19,9 +19,10 @@ const (
 
 type query struct {
 	client
-	short string `data:"where"`
-	field string `data:"time,where"`
-	list  string `name:"list sess database table id auto" help:"查询"`
+	short    string `data:"where"`
+	field    string `data:"time,where"`
+	describe string `name:"describe" help:"定义"`
+	list     string `name:"list sess database table id auto" help:"查询"`
 }
 
 func (s query) Drop(m *ice.Message, arg ...string) {
