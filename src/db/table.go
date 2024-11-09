@@ -462,7 +462,7 @@ func (s Table) TableName(model string) string {
 		if !kit.HasSuffix(model, "os") {
 			model = model + "es"
 		}
-	} else {
+	} else if model != "equipment" {
 		model = model + "s"
 	}
 	return model
