@@ -204,6 +204,9 @@ func (s Table) Select(m *ice.Message, arg ...string) *ice.Message {
 	if m.Option("query_option") == "FOR UPDATE" {
 		db = db.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
+	if m.Option(mdb.GROUP) != "" {
+		db = db.Group(m.Option(mdb.GROUP))
+	}
 	s.Show(m, s.Where(m, db, arg...))
 	s.ClearOption(m)
 	kit.If(!m.FieldsIsDetail(), func() { m.Action(s.Create) })
@@ -363,6 +366,7 @@ func (s Table) Rows(m *ice.Message, db *gorm.DB) *ice.Message {
 
 func (s Table) ClearOption(m *ice.Message, arg ...string) *ice.Message {
 	m.Optionv(mdb.TABLE, []string{})
+	m.Optionv(mdb.GROUP, []string{})
 	m.Optionv(mdb.SELECT, []string{})
 	if kit.IndexOf(m.Appendv(ice.MSG_APPEND), mdb.ORDER) == -1 {
 		m.Optionv(mdb.ORDER, []string{})
@@ -404,6 +408,10 @@ func (s Table) Fields(m *ice.Message, arg ...ice.Any) Table {
 }
 func (s Table) Orders(m *ice.Message, arg ...ice.Any) Table {
 	m.Optionv(mdb.ORDER, arg...)
+	return s
+}
+func (s Table) Groups(m *ice.Message, arg ...ice.Any) Table {
+	m.Optionv(mdb.GROUP, arg...)
 	return s
 }
 func (s Table) Limit(m *ice.Message, limit int) Table {
