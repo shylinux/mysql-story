@@ -63,11 +63,13 @@ func (s query) List(m *ice.Message, arg ...string) {
 				m.Push(mdb.TOTAL, msg.Append(mdb.TOTAL))
 				msg = db.Query(m.Spawn(), kit.Format("show fields from %s", value[TABLE])).ToLowerAppend()
 				m.Push(mdb.FIELD, strings.Join(msg.Appendv(mdb.FIELD), ice.FS))
+				if kit.IsIn(arg[1], "mysql", "information_schema", "performance_schema") || kit.IsIn(value[TABLE], "users") {
+					m.PushButton()
+				} else {
+					m.PushButton(s.Drop)
+				}
 			})
 		})
-		if !kit.IsIn(arg[1], "mysql", "information_schema", "performance_schema") {
-			m.PushAction(s.Drop)
-		}
 	} else {
 		where := kit.Select("", arg, 6)
 		kit.If(where, func() { s.Hash.Create(m.Spawn(), WHERE, where); where = kit.JoinWord(WHERE, where) })
