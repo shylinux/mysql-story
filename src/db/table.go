@@ -10,8 +10,10 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
 	"shylinux.com/x/ice"
 	"shylinux.com/x/icebergs/base/mdb"
+	"shylinux.com/x/icebergs/core/code"
 	kit "shylinux.com/x/toolkits"
 )
 
@@ -460,20 +462,7 @@ func (s Table) ToLower(model string) string {
 	return model
 }
 func (s Table) TableName(model string) string {
-	model = s.ToLower(model)
-	if strings.Contains("0123456789", model[len(model)-1:]) {
-		return model
-	}
-	if kit.HasSuffix(model, "y") {
-		model = model[:len(model)-1] + "ies"
-	} else if kit.HasSuffix(model, "s") {
-		if !kit.HasSuffix(model, "os") {
-			model = model + "es"
-		}
-	} else if model != "equipment" {
-		model = model + "s"
-	}
-	return model
+	return code.TableName(s.ToLower(model))
 }
 func (s Table) Keys(target ice.Any, k string) string {
 	return s.ToLower(kit.TypeName(target)) + "_" + k
