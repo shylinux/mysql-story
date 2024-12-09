@@ -317,7 +317,7 @@ func (s Table) Show(m *ice.Message, db *gorm.DB) *ice.Message {
 	fields := kit.Simple(m.Optionv(mdb.SELECT))
 	kit.If(len(fields) > 0, func() { db = db.Select(fields) })
 	kit.If(m.Option(mdb.ORDER), func() { db = db.Order(kit.Join(kit.Simple(m.Optionv(mdb.ORDER)), ",")) })
-	return s.Rows(m, db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "30"))))
+	return s.Rows(m, db.Offset(kit.Int(m.OptionDefault(mdb.OFFSET, "0"))).Limit(kit.Int(m.OptionDefault(mdb.LIMIT, "50"))))
 }
 func (s Table) Rows(m *ice.Message, db *gorm.DB) *ice.Message {
 	rows, err := db.Rows()
