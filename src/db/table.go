@@ -461,6 +461,9 @@ func (s Table) ToLower(model string) string {
 	model = kit.Join(list, "_")
 	return model
 }
+func (s Table) TableNames(model ice.Any) string {
+	return s.TableName(s.ToLower(kit.TypeName(model)))
+}
 func (s Table) TableName(model string) string {
 	return code.TableName(s.ToLower(model))
 }
