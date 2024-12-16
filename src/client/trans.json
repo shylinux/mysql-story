@@ -4,6 +4,9 @@
 		"driver": "驱动",
 		"database": "数据库",
 		"table": "关系表",
+		"deleted": "已删除",
+		"place": "场景",
+		"user": "用户",
 		"limit": "分页",
 		"offend": "偏移",
 		"where": "查询条件"

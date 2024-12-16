@@ -163,6 +163,9 @@ func (s Table) Create(m *ice.Message, arg ...string) {
 	}
 	m.ProcessRefresh()
 }
+func (s Table) RemoveBy(m *ice.Message, arg ...string) {
+	m.Warn(s.Open(m).Where(arg[0], kit.TransArgs(arg[1:])...).Delete(nil).Error)
+}
 func (s Table) Remove(m *ice.Message, arg ...string) {
 	m.Warn(s.OpenUID(m, m.Option(UID)).Updates(kit.Dict(DELETED_AT, s.now(m), arg)).Error)
 }
